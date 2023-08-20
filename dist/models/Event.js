@@ -15,5 +15,8 @@ exports.default = new (class Event extends sqlifier_1.SQLifier {
             isDeleted: { type: 'boolean', default: false }
         });
     }
+    removeEvent(id) {
+        this.update({ id }, { isDeleted: true });
+    }
 });
 //# sourceMappingURL=Event.js.map

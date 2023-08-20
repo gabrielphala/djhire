@@ -20,11 +20,15 @@ export default class BaseController {
     };
 
     signOut = (req: Request, res: Response) => {
-        res.clearCookie('_uc')
+        res.clearCookie('dj_user')
 
-        return res.status(200).json({
-            redirect: '/sign-in'
-        })
+        res.redirect('/sign-in')
+    };
+
+    signOutOrganizer = (req: Request, res: Response) => {
+        res.clearCookie('dj_user')
+
+        res.redirect('/organizer/sign-in')
     };
 
     wrap = (service_method: (r: IResponse, b: IAny) => Promise<IResponse> | IResponse) => (req: Request, res: Response) => {

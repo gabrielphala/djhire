@@ -18,10 +18,12 @@ class BaseController {
         });
     };
     signOut = (req, res) => {
-        res.clearCookie('_uc');
-        return res.status(200).json({
-            redirect: '/sign-in'
-        });
+        res.clearCookie('dj_user');
+        res.redirect('/sign-in');
+    };
+    signOutOrganizer = (req, res) => {
+        res.clearCookie('dj_user');
+        res.redirect('/organizer/sign-in');
     };
     wrap = (service_method) => (req, res) => {
         this.res_wrap(async (response) => {

@@ -21,7 +21,7 @@ export default () => new (class Organizer {
         })
 
         if (response.successful) {
-            Environment.put('userDetails', response.userDetails);
+            Environment.put('userInfo', response.userDetails);
 
             return Next('/organizer/event-manager')
         }
@@ -40,7 +40,7 @@ export default () => new (class Organizer {
         })
 
         if (response.successful) {
-            Environment.put('userDetails', response.userDetails);
+            Environment.put('userInfo', response.userDetails);
 
             return Next('/organizer/event-manager')
         }

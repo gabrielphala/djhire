@@ -15,4 +15,8 @@ export default new (class Event extends SQLifier {
             isDeleted: { type: 'boolean', default: false }
         })
     }
+
+    removeEvent (id: string | number) {
+        this.update({ id }, { isDeleted: true })
+    }
 })

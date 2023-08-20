@@ -1,6 +1,7 @@
-import { Events, Next, Environment } from "oddlyjs"
+import { Events, Refresh } from "oddlyjs"
 
 import { showError } from "../helpers/error-container";
+import { closeModal } from "../helpers/modal";
 import fetch from "../helpers/fetch";
 
 export default () => new (class MyEvent {
@@ -20,12 +21,48 @@ export default () => new (class MyEvent {
             }
         })
 
-        // if (response.successful) {
-        //     Environment.put('userDetails', response.userDetails);
+        if (response.successful) {
+            closeModal('new-event')
 
-        //     return Next('/organizer/event-manager')
-        // }
+            return Refresh();
+        }
 
-        // showError('auth', response.error)
+        showError('event', response.error)
+    }
+
+    async edit (e: PointerEvent) {
+        e.preventDefault();
+
+        const response = await fetch('/event/edit', {
+            body: {
+                event_id: $('#event-id').val(),
+                name: $('#edit-event-name').val(),
+                location: $('#edit-event-location').val(),
+                start: $('#edit-event-start').val(),
+                end: $('#edit-event-end').val()
+            }
+        })
+
+        if (response.successful) {
+            closeModal('edit-event')
+
+            return Refresh();
+        }
+
+        showError('edit-event', response.error)
+    }
+
+    async removeEvent (event_id: string) {
+        const response = await fetch('/event/remove/by/id', {
+            body: {
+                event_id
+            }
+        })
+
+        Refresh();
+    }
+
+    openEditModal (event_id: string) {
+        $('#event-id').val(event_id);
     }
 });

@@ -1,0 +1,43 @@
+<div class="modal modal--closed flex--a-start flex--j-center" id="edit-event-modal">
+    <form class="modal__main card" {{submit "MyEvent.edit(event)" }}>
+        <div class="card__header flex flex--a-center flex--j-space-between">
+            <div>
+                <h1>Edit event.</h1>
+                <p>Edit an event</p>
+            </div>
+            <svg class="image--icon" {{click "Util.closeModal('edit-event')" }}>
+                <use href="#cross"></use>
+            </svg>
+        </div>
+        <div class="card__body">
+            <div class="error-container hide" style="margin-bottom: 1rem;" id="edit-event-error">
+                <p></p>
+            </div>
+
+            <input type="text" id="event-id" hidden>
+
+            <div class="twin-inputs flex flex--a-center flex--j-space-between">
+                <div class="input">
+                    <input type="text" id="edit-event-name" placeholder="Name">
+                </div>
+                <div class="input">
+                    <input type="text" id="edit-event-location" placeholder="Location">
+                </div>
+            </div>
+            <div class="twin-inputs flex flex--a-center flex--j-space-between margin--top-1">
+                <div class="input">
+                    <label class="input__label" for="edit-event-start">Event start time &amp; date</label>
+                    <input type="datetime-local" id="edit-event-start">
+                </div>
+                <div class="input">
+                    <label class="input__label" for="edit-event-end">Event end time &amp; date</label>
+                    <input type="datetime-local" id="edit-event-end">
+                </div>
+            </div>
+        </div>
+        <div class="card__footer">
+            <button class="btn btn--primary">Edit event</button>
+            <button type="button" class="btn" {{click "Util.closeModal('edit-event')" }}>Cancel</button>
+        </div>
+    </form>
+</div>

@@ -23,7 +23,7 @@ export default () => new (class DJ {
         })
 
         if (response.successful) {
-            Environment.put('userDetails', response.userDetails);
+            Environment.put('userInfo', response.userDetails);
 
             return Next('/my-schedule')
         }
@@ -42,7 +42,7 @@ export default () => new (class DJ {
         })
 
         if (response.successful) {
-            Environment.put('userDetails', response.userDetails);
+            Environment.put('userInfo', response.userDetails);
 
             return Next('/my-schedule')
         }

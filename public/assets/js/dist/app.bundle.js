@@ -29,7 +29,8 @@ class KoliEngine {
     _signalUsage;
     _inlineSignals;
     _config = {
-        allowTerminatorHelpers: false
+        allowTerminatorHelpers: false,
+        cache: true
     };
     constructor(content, data, helpers) {
         this._content = content || '';
@@ -142,8 +143,10 @@ class KoliEngine {
             return await this.execSame(blockArg, blockBody, block);
     }
     async renderVariables(inlineBlock) {
+        let oldBlock = inlineBlock;
+        inlineBlock = await this.subRender(inlineBlock.slice(2, inlineBlock.length - 2), this.data);
         let blockStartPos = this._content.indexOf(inlineBlock), blockEndPos;
-        let key = inlineBlock.replace('{{', '').replace('}}', '').trim();
+        let key = inlineBlock.replace(/{{|}}|<<|>>/, '').trim();
         let helperRes = await this.useHelpers(key);
         const helperNotUsed = helperRes === undefined || helperRes === '' || helperRes === null;
         // TODO: check if we need to use the helper value or not
@@ -155,11 +158,11 @@ class KoliEngine {
         blockEndPos = blockStartPos + (value || '').length;
         // TODO: in a single render line multiple signals could be used, hanlde that
         this.recordSignalUsage(this._inlineSignals, {
-            block: inlineBlock,
+            block: oldBlock,
             start: blockStartPos,
             end: blockEndPos
         });
-        this.replaceContent(inlineBlock, value);
+        this.replaceContent(oldBlock, value);
     }
     replaceContent(block, replacement, trim = false) {
         const content = this._content.replace(new RegExp(`${block}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), replacement);
@@ -170,6 +173,7 @@ class KoliEngine {
         return await koli.render(this._config);
     }
     async execLoop(loopArray, loopBody, block) {
+        loopArray = loopArray.trim();
         let blockStartPos = this._content.indexOf(block), blockEndPos, data = await Utility_1.default.traverseKoliObjectString(loopArray, this._data);
         let renderedContent = '';
         if (Array.isArray(data)) {
@@ -213,11 +217,21 @@ class KoliEngine {
         this.replaceContent(block, renderedContent);
     }
     async execNot(notArg, notBody, block) {
+        notArg = notArg.trim();
+        let blockStartPos = this._content.indexOf(block), blockEndPos;
         let data = await Utility_1.default.traverseKoliObjectString(notArg, this._data);
         let argEvaluation = Utility_1.default.isValueTruthy(data);
-        let renderedContent = '';
+        let renderedContent = ' ';
         if (!argEvaluation)
             renderedContent += await this.subRender(notBody, this._data);
+        blockEndPos = blockStartPos + renderedContent.length;
+        if (this.isSignal(notArg)) {
+            this.recordSignalUsage([notArg], {
+                block,
+                start: blockStartPos,
+                end: blockEndPos
+            });
+        }
         this.replaceContent(block, renderedContent);
     }
     async execSame(sameArg, sameBody, block) {
@@ -252,8 +266,8 @@ class KoliEngine {
         /**
          * TODO: Improve caching
          */
-        const cacheKey = this._file || content + JSON.stringify(this._data) + JSON.stringify(this._headers), cacheContent = this._cache.find(cacheKey);
-        if (cacheContent && !this._config.allowTerminatorHelpers)
+        const cacheKey = content + JSON.stringify(this._data) + JSON.stringify(this._headers), cacheContent = this._cache.find(cacheKey);
+        if (this._cache && cacheContent && !this._config.allowTerminatorHelpers)
             return this._content = cacheContent;
         let block;
         while (block = lexer.nextBlock()) {
@@ -265,8 +279,8 @@ class KoliEngine {
         // do not cache any component that uses helpers like 'fetch'
         // it will prevent the same component from being compiled a second time even thou
         // the fetch would return different data
-        if (!this._hasInternalDataFetch)
-            this._cache.store(cacheKey, this._content);
+        // if (!this._hasInternalDataFetch)
+        //     this._cache.store(cacheKey, this._content);
     }
     async render(config = {}) {
         try {
@@ -532,16 +546,11 @@ class Lexer {
     _alpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     _concatToken = false;
     _nestingDepth = 0;
-    _keyTokens = [
-        '{{',
-        '}}',
-        '#',
-        '/',
-        'if',
-        'each',
-        'not',
-        'same'
-    ];
+    _tagPairs = {
+        '{{': '}}',
+        '<<': '>>'
+    };
+    _closingTagsCallStack = [];
     _nestables = [
         'each',
         'if',
@@ -588,18 +597,26 @@ class Lexer {
     }
     getToken() {
         let token = this.makeString() || this.makeSpecialCharToken();
-        if (token == '{{' && !this._concatToken)
+        if (this._tagPairs[token] && !this._concatToken) {
             this._concatToken = true;
-        else if (token == '}}')
+            this._closingTagsCallStack.push(this._tagPairs[token]);
+        }
+        else if (token == this._closingTagsCallStack[0]) {
             this._concatToken = false;
+            this._closingTagsCallStack.shift();
+        }
+        // if (token == '{{' && !this._concatToken) {
+        //     this._concatToken = true;
+        // }
+        // else if (token == '}}') this._concatToken = false;
         token += this._concatToken ? this.getToken() : '';
         return token;
     }
     isBlock(token) {
-        return token.startsWith('{{');
+        return token.startsWith('{{') || token.startsWith('<<');
     }
     makeBlock(token) {
-        const cleanToken = token.replace(/{{|}}/g, '');
+        const cleanToken = token.replace(/{{|}}|\<\<|\>\>/g, '');
         const tokenArr = cleanToken.split(' ');
         let tokenName = tokenArr[0];
         let tempArr = [...tokenArr];
@@ -782,7 +799,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.signal = exports.watch = exports.Environment = exports.Middleware = exports.Events = exports.Next = exports.Load = exports.Router = exports.Route = exports.Config = void 0;
+exports.signal = exports.watch = exports.Environment = exports.Middleware = exports.Events = exports.Refresh = exports.Next = exports.Load = exports.Router = exports.Route = exports.Config = void 0;
 const Config_1 = __importDefault(__webpack_require__(/*! ./src/Config */ "../oddlyjs/src/Config.ts"));
 exports.Config = Config_1.default;
 const Events_1 = __importDefault(__webpack_require__(/*! ./src/Events */ "../oddlyjs/src/Events.ts"));
@@ -798,6 +815,7 @@ exports.Route = Route_1.default;
 const App_1 = __webpack_require__(/*! ./src/App */ "../oddlyjs/src/App.ts");
 Object.defineProperty(exports, "Load", ({ enumerable: true, get: function () { return App_1.Load; } }));
 Object.defineProperty(exports, "Next", ({ enumerable: true, get: function () { return App_1.Next; } }));
+Object.defineProperty(exports, "Refresh", ({ enumerable: true, get: function () { return App_1.Refresh; } }));
 const Signal_1 = __webpack_require__(/*! ./src/Signal */ "../oddlyjs/src/Signal/index.ts");
 Object.defineProperty(exports, "watch", ({ enumerable: true, get: function () { return Signal_1.watch; } }));
 Object.defineProperty(exports, "signal", ({ enumerable: true, get: function () { return Signal_1.signal; } }));
@@ -807,6 +825,7 @@ exports["default"] = {
     Router: Router_1.default,
     Load: App_1.Load,
     Next: App_1.Next,
+    Refresh: App_1.Refresh,
     Events: Events_1.default,
     Middleware: Middleware_1.default,
     Environment: Environment_1.default,
@@ -828,7 +847,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Next = exports.Load = void 0;
+exports.Refresh = exports.Next = exports.Load = void 0;
 const URL_1 = __importDefault(__webpack_require__(/*! ./URL */ "../oddlyjs/src/URL.ts"));
 const Router_1 = __importDefault(__webpack_require__(/*! ./Router */ "../oddlyjs/src/Router/index.ts"));
 const Layouts_1 = __importDefault(__webpack_require__(/*! ./Layouts */ "../oddlyjs/src/Layouts/index.ts"));
@@ -855,6 +874,16 @@ const Next = (url) => {
     })();
 };
 exports.Next = Next;
+const Refresh = () => {
+    (async () => {
+        const { path, headers } = await URL_1.default.tryPath(URL_1.default.path);
+        Router_1.default.setCurrentRoute(path);
+        Router_1.default.currentRoute.headers = headers;
+        Layouts_1.default.next(path);
+        Middleware_1.default.run();
+    })();
+};
+exports.Refresh = Refresh;
 
 
 /***/ }),
@@ -903,7 +932,7 @@ class Component {
             return true;
         return this._scope.includes(Router_1.default.currentRoute.name);
     }
-    async parse(allowTerminatorHelpers) {
+    async parse(allowTerminatorHelpers, allowCache) {
         this._rawContent = this._rawContent || await Util_1.default.fetch(this._path);
         Environment_1.default.kolijs.setContext({
             content: this._rawContent,
@@ -915,7 +944,8 @@ class Component {
             headers: Router_1.default.currentRoute.headers
         });
         this._content = await Environment_1.default.kolijs.render({
-            allowTerminatorHelpers
+            allowTerminatorHelpers,
+            cache: allowCache
         });
         const { data, signalUsage } = Environment_1.default.kolijs.snapshot();
         this._data = data;
@@ -1118,7 +1148,7 @@ class Events {
         Object.getOwnPropertyNames(Object.getPrototypeOf(obj)).forEach(eventHandler => {
             if (eventHandler == 'constructor')
                 return;
-            this._eventHandlers[`${obj.constructor.name + '.' + eventHandler}`] = Object.getPrototypeOf(obj)[eventHandler];
+            this._eventHandlers[`${obj.constructor.name + '.' + eventHandler}`] = Object.getPrototypeOf(obj)[eventHandler].bind(obj);
         });
     }
     makeGlobal(path, globalMethodName) {
@@ -1218,6 +1248,7 @@ class Layout {
     _path;
     _content;
     _nestedComponentIndex = 0;
+    _allowComponentCache = true;
     _nestedComponentsIndices = {};
     _rawContent;
     _componentCallStack = {};
@@ -1261,9 +1292,9 @@ class Layout {
             for (let c = 0; c < componentGroup.length; c++) {
                 const componentPath = componentGroup[c];
                 const component = Components_1.default.use(componentPath);
-                await component.parse(true);
+                await component.parse(true, this._allowComponentCache);
                 if (component.isInScope()) {
-                    await component.parse(false);
+                    await component.parse(false, this._allowComponentCache);
                     finalComponents.push({
                         group: componentNames[g],
                         componentPath
@@ -1288,25 +1319,27 @@ class Layout {
     removeLabels() {
         this._content = Util_1.default.cleanHTMLContent(this._content);
     }
-    build() {
+    build(contentRegenate = false) {
         Middleware_1.default.once(async (next) => {
+            this._allowComponentCache = false;
             this._rawContent = this._rawContent || await Util_1.default.fetch(Util_1.default.resolveLayoutPath(this._path));
             const layoutContent = this._rawContent;
             this._content = await Environment_1.default.kolijs.setContext({
                 content: layoutContent,
-                headers: Router_1.default.currentRoute.headers
+                headers: Router_1.default.currentRoute.headers,
             }).render();
             const componentNames = Util_1.default.extractComponentNames(this._content);
             const descendantComponents = await this.getDescendantComponents(componentNames);
             await this.resolveComponents(descendantComponents);
-            const blueprint = new Blueprint_1.default(this._path, this._content);
-            const { blueprint: _blueprint, elementIndex, events, layout } = blueprint.makeBlueprint();
-            this._content = layout;
             const route = Router_1.default.currentRoute;
-            route.blueprint = _blueprint;
-            route.content = layout;
-            route.events = events;
-            route.elementIndex = elementIndex;
+            if (!contentRegenate) {
+                const blueprint = new Blueprint_1.default(this._path, this._content);
+                const { blueprint: _blueprint, elementIndex, events } = blueprint.makeBlueprint();
+                route.blueprint = _blueprint;
+                route.events = events;
+                route.elementIndex = elementIndex;
+            }
+            route.content = this._content;
             route.nestedComponentsIndices = this._nestedComponentsIndices;
             route.componentCallStack = this._componentCallStack;
             this.removeLabels();
@@ -1428,21 +1461,23 @@ exports["default"] = new (class Layouts {
     buildLayout(layout) {
         return layout.build();
     }
-    build() {
+    build(contentRegenate = false) {
         const layoutpath = Router_1.default.currentRoute.layoutpath;
         if (!layoutpath)
             throw 'Error: Path to layout not specified';
         let layout = this.addLayout(layoutpath);
-        layout.build();
-        Middleware_1.default.once(() => {
-            Util_1.default.prependToBody(layout.content);
-            // Components.initNavEvents();
-            // Components.initHighlightNavItems();
-            // const router = Router.use(Router.currentRoute.name);
-            // Components.initEvents('loaded');
-            // Components.initOnLoaded()
-            Router_1.default.currentRoute.initDOMLoaded();
-        });
+        layout.build(contentRegenate);
+        if (!contentRegenate) {
+            Middleware_1.default.once(() => {
+                Util_1.default.prependToBody(layout.content);
+                // Components.initNavEvents();
+                // Components.initHighlightNavItems();
+                // const router = Router.use(Router.currentRoute.name);
+                // Components.initEvents('loaded');
+                // Components.initOnLoaded()
+                Router_1.default.currentRoute.initDOMLoaded();
+            });
+        }
     }
     next(url) {
         const currentLayoutpath = Router_1.default.currentRoute.layoutpath;
@@ -1865,6 +1900,7 @@ exports.elements = [
     'tt',
     'u',
     'ul',
+    'use',
     'var',
     'video'
 ];
@@ -1922,13 +1958,13 @@ class DOMTree extends Lexer_1.default {
                 this._domTree.push({
                     name: token,
                     isClosed: false,
-                    index: this.pos.index
+                    index: this.pos.index - token.length
                 });
             }
-            if (Chars_1.elements.includes(token) && this.lookBehind(token) == '/') {
+            if (Chars_1.elements.includes(token) && this.lookBehind(token) == '/' && this.lookBehind(token, 2) == '<') {
                 for (let i = this._domTree.length - 1; i > -1; i--) {
                     const el = this._domTree[i];
-                    if (el.name == token) {
+                    if (el.name == token && !el.isClosed) {
                         el.isClosed = true;
                         break;
                     }
@@ -1937,13 +1973,25 @@ class DOMTree extends Lexer_1.default {
             this.next();
         }
         const counter = {};
+        /**
+         * saveStopIndex = index of last open element
+         * prevents miscalculation of the element index in DOM
+         */
+        let saveStopIndex = 0;
         for (let i = 0; i < this._domTree.length; i++) {
+            const el = this._domTree[i];
+            if (!el.isClosed) {
+                saveStopIndex = i;
+            }
+        }
+        for (let i = 0; i <= saveStopIndex; i++) {
             const el = this._domTree[i];
             counter[el.name] = counter[el.name] || 0;
             counter[el.name]++;
-            if (!el.isClosed) {
+            if (!el.isClosed && !Chars_1.selfClosingElements.includes(el.name)) {
+                console.log('El', el.name);
                 this._lastElement = el.name;
-                lastCharPosOpenTag = this.layout.indexOf('>', el.index);
+                lastCharPosOpenTag = this.layout.indexOf('>', el.index - 1);
             }
         }
         return [
@@ -2407,7 +2455,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const Environment_1 = __importDefault(__webpack_require__(/*! ../Environment */ "../oddlyjs/src/Environment.ts"));
+const Layouts_1 = __importDefault(__webpack_require__(/*! ../Layouts */ "../oddlyjs/src/Layouts/index.ts"));
 const DOMTree_1 = __importDefault(__webpack_require__(/*! ../Lexer/DOMTree */ "../oddlyjs/src/Lexer/DOMTree.ts"));
+const Middleware_1 = __importDefault(__webpack_require__(/*! ../Middleware */ "../oddlyjs/src/Middleware.ts"));
 const Router_1 = __importDefault(__webpack_require__(/*! ../Router */ "../oddlyjs/src/Router/index.ts"));
 const Util_1 = __importDefault(__webpack_require__(/*! ../Util */ "../oddlyjs/src/Util.ts"));
 const Watcher_1 = __importDefault(__webpack_require__(/*! ./Watcher */ "../oddlyjs/src/Signal/Watcher.ts"));
@@ -2429,59 +2479,65 @@ class Signal {
     set value(value) {
         this._value = value;
         const currentRoute = Router_1.default.currentRoute;
-        const currentRouteContent = currentRoute.content;
         currentRoute.data[this._id] = value;
-        const paths = Util_1.default.findComponentPaths(currentRouteContent);
-        const cleanHTMLContent = Util_1.default.cleanHTMLContent(currentRouteContent).trim();
-        currentRoute.signalUsage[this._id]?.forEach(({ file, position }) => {
+        currentRoute.signalUsage[this._id]?.forEach((_, index) => {
             let offset = 0;
-            paths.forEach(async (path) => {
-                const isNestedComponent = currentRoute.componentCallStack[file].includes(path.replace('component_start', '').replace(';', ''));
-                if ((path.indexOf(file) < 0) &&
-                    (!isNestedComponent)) {
-                    offset += path.length + ' component_end'.length;
-                    return;
-                }
-                ;
-                let componentStartPos = currentRouteContent.indexOf(path) - offset;
-                let limit = componentStartPos + position.end;
-                let nestedComponestsLength = 0;
-                /** push the component start away from whitespace */
-                for (let i = componentStartPos; i < limit; i++) {
-                    if (' \n\t\r'.includes(cleanHTMLContent.charAt(componentStartPos))) {
-                        componentStartPos++;
-                        limit++;
+            Layouts_1.default.build(true);
+            Middleware_1.default.once(() => {
+                const currentRouteContent = currentRoute.content;
+                const { file, position } = currentRoute.signalUsage[this._id][index];
+                const paths = Util_1.default.findComponentPaths(currentRouteContent);
+                const cleanHTMLContent = Util_1.default.cleanHTMLContent(currentRouteContent).trim();
+                paths.forEach(async (path) => {
+                    const isNestedComponent = currentRoute.componentCallStack[file].includes(path.replace('component_start', '').replace(';', ''));
+                    if ((path.indexOf(file) < 0) &&
+                        (!isNestedComponent)) {
+                        offset += path.length + ' component_end'.length;
+                        return;
                     }
-                    else
-                        break;
-                }
-                currentRoute.nestedComponentsIndices[file].forEach(({ start, fullLength, offset }) => {
-                    if (start - nestedComponestsLength < componentStartPos + position.start) {
-                        nestedComponestsLength += fullLength - offset;
-                        limit = componentStartPos + nestedComponestsLength + position.end;
+                    ;
+                    let componentStartPos = currentRouteContent.indexOf(path) - offset;
+                    let limit = componentStartPos + position.end;
+                    let nestedComponestsLength = 0;
+                    /** push the component start away from whitespace */
+                    for (let i = componentStartPos; i < limit; i++) {
+                        if (' \n\t\r'.includes(cleanHTMLContent.charAt(componentStartPos))) {
+                            componentStartPos++;
+                            limit++;
+                        }
+                        else
+                            break;
                     }
+                    currentRoute.nestedComponentsIndices[file].forEach(({ start, fullLength, offset }) => {
+                        if (start - nestedComponestsLength < componentStartPos + position.start) {
+                            nestedComponestsLength += fullLength - offset;
+                            limit = componentStartPos + nestedComponestsLength + position.end;
+                        }
+                    });
+                    let contentOfInterest = cleanHTMLContent.slice(0, limit);
+                    const domTree = new DOMTree_1.default(contentOfInterest);
+                    let [elementName, elementIndex, lastCharPosOpenTag] = domTree.findEntityToReRender();
+                    lastCharPosOpenTag = lastCharPosOpenTag;
+                    const firstCharPosCloseTag = cleanHTMLContent.indexOf(`</${elementName}`, contentOfInterest.length + 1);
+                    const element = document.getElementsByTagName(elementName)[elementIndex];
+                    const elementInnerHTML = element.innerHTML;
+                    /**
+                     * Shift the replacement positions (range)
+                     * Start from component start position
+                     * idea: reduce replacement range to fit into elementInnerHTML
+                     */
+                    const replaceStartAt = componentStartPos + nestedComponestsLength + position.start - lastCharPosOpenTag - 1;
+                    const replaceEndAt = componentStartPos + nestedComponestsLength + position.end - lastCharPosOpenTag - 1;
+                    Environment_1.default.kolijs.setContext({
+                        content: position.block,
+                        data: currentRoute.data
+                    });
+                    const replacement = await Environment_1.default.kolijs.render();
+                    const newInnerHTML = Util_1.default.replaceStringAt(elementInnerHTML, replacement, replaceStartAt, replaceEndAt - replaceStartAt);
+                    // element.innerHTML = newInnerHTML;
                 });
-                let contentOfInterest = cleanHTMLContent.slice(0, limit);
-                const domTree = new DOMTree_1.default(contentOfInterest);
-                let [elementName, elementIndex, lastCharPosOpenTag] = domTree.findEntityToReRender();
-                lastCharPosOpenTag = lastCharPosOpenTag;
-                const firstCharPosCloseTag = cleanHTMLContent.indexOf(`</${elementName}`, lastCharPosOpenTag);
-                const element = document.getElementsByTagName(elementName)[elementIndex];
-                const elementInnerHTML = cleanHTMLContent.slice(lastCharPosOpenTag + 1, firstCharPosCloseTag);
-                /**
-                 * Shift the replacement positions (range)
-                 * Start from component start position
-                 * idea: reduce replacement range to fit into elementInnerHTML
-                 */
-                const replaceStartAt = componentStartPos + nestedComponestsLength + position.start - lastCharPosOpenTag - 1;
-                const replaceEndAt = componentStartPos + nestedComponestsLength + position.end - lastCharPosOpenTag - 1;
-                Environment_1.default.kolijs.setContext({
-                    content: position.block,
-                    data: currentRoute.data
-                });
-                const newInnerHTML = Util_1.default.replaceStringAt(elementInnerHTML, await Environment_1.default.kolijs.render(), replaceStartAt, replaceEndAt - replaceStartAt);
-                element.innerHTML = newInnerHTML;
             });
+            Middleware_1.default.run();
         });
         this._watcher.invokeWatcherHandler(this._id, value);
     }
@@ -2783,7 +2839,7 @@ class Util {
         return string;
     }
     static replaceStringAt(str, replacement, start, end) {
-        return str.slice(0, start) + replacement + str.slice(start + end);
+        return str.slice(0, start - 1) + replacement + str.slice(start + end);
     }
 }
 exports["default"] = Util;
@@ -2848,7 +2904,7 @@ exports["default"] = () => new (class DJ {
             }
         });
         if (response.successful) {
-            oddlyjs_1.Environment.put('userDetails', response.userDetails);
+            oddlyjs_1.Environment.put('userInfo', response.userDetails);
             return (0, oddlyjs_1.Next)('/my-schedule');
         }
         (0, error_container_1.showError)('auth', response.error);
@@ -2862,7 +2918,7 @@ exports["default"] = () => new (class DJ {
             }
         });
         if (response.successful) {
-            oddlyjs_1.Environment.put('userDetails', response.userDetails);
+            oddlyjs_1.Environment.put('userInfo', response.userDetails);
             return (0, oddlyjs_1.Next)('/my-schedule');
         }
         (0, error_container_1.showError)('auth', response.error);
@@ -2884,6 +2940,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const oddlyjs_1 = __webpack_require__(/*! oddlyjs */ "../oddlyjs/index.ts");
+const error_container_1 = __webpack_require__(/*! ../helpers/error-container */ "./public/assets/js/src/helpers/error-container.ts");
+const modal_1 = __webpack_require__(/*! ../helpers/modal */ "./public/assets/js/src/helpers/modal.ts");
 const fetch_1 = __importDefault(__webpack_require__(/*! ../helpers/fetch */ "./public/assets/js/src/helpers/fetch.ts"));
 exports["default"] = () => new (class MyEvent {
     constructor() {
@@ -2899,11 +2957,39 @@ exports["default"] = () => new (class MyEvent {
                 end: $('#event-end').val()
             }
         });
-        // if (response.successful) {
-        //     Environment.put('userDetails', response.userDetails);
-        //     return Next('/organizer/event-manager')
-        // }
-        // showError('auth', response.error)
+        if (response.successful) {
+            (0, modal_1.closeModal)('new-event');
+            return (0, oddlyjs_1.Refresh)();
+        }
+        (0, error_container_1.showError)('event', response.error);
+    }
+    async edit(e) {
+        e.preventDefault();
+        const response = await (0, fetch_1.default)('/event/edit', {
+            body: {
+                event_id: $('#event-id').val(),
+                name: $('#edit-event-name').val(),
+                location: $('#edit-event-location').val(),
+                start: $('#edit-event-start').val(),
+                end: $('#edit-event-end').val()
+            }
+        });
+        if (response.successful) {
+            (0, modal_1.closeModal)('edit-event');
+            return (0, oddlyjs_1.Refresh)();
+        }
+        (0, error_container_1.showError)('edit-event', response.error);
+    }
+    async removeEvent(event_id) {
+        const response = await (0, fetch_1.default)('/event/remove/by/id', {
+            body: {
+                event_id
+            }
+        });
+        (0, oddlyjs_1.Refresh)();
+    }
+    openEditModal(event_id) {
+        $('#event-id').val(event_id);
     }
 });
 
@@ -2939,7 +3025,7 @@ exports["default"] = () => new (class Organizer {
             }
         });
         if (response.successful) {
-            oddlyjs_1.Environment.put('userDetails', response.userDetails);
+            oddlyjs_1.Environment.put('userInfo', response.userDetails);
             return (0, oddlyjs_1.Next)('/organizer/event-manager');
         }
         (0, error_container_1.showError)('auth', response.error);
@@ -2953,7 +3039,7 @@ exports["default"] = () => new (class Organizer {
             }
         });
         if (response.successful) {
-            oddlyjs_1.Environment.put('userDetails', response.userDetails);
+            oddlyjs_1.Environment.put('userInfo', response.userDetails);
             return (0, oddlyjs_1.Next)('/organizer/event-manager');
         }
         (0, error_container_1.showError)('auth', response.error);
@@ -3101,18 +3187,18 @@ exports.closeModal = closeModal;
 /*!**************************************************!*\
   !*** ./public/assets/js/src/middleware/index.ts ***!
   \**************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const oddlyjs_1 = __webpack_require__(/*! oddlyjs */ "../oddlyjs/index.ts");
+const fetch_1 = __importDefault(__webpack_require__(/*! ../helpers/fetch */ "./public/assets/js/src/helpers/fetch.ts"));
 exports["default"] = () => {
     oddlyjs_1.Middleware.repeat(async (next) => {
-        // Environment.put(
-        //     'userDetails',
-        //     (await fetch('/user/get/by/session')).details,
-        //     true
-        // )
+        oddlyjs_1.Environment.put('userInfo', (await (0, fetch_1.default)('/user/get/by/session')).userInfo, true);
         next();
     });
 };

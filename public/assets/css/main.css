@@ -377,11 +377,11 @@ li {
 .sidenav__logo img {
   width: 6rem;
 }
-.sidenav__nav ul li {
+.sidenav__nav__ul__item {
   padding: 0.8rem 2rem;
   color: #b8d3cb;
 }
-.sidenav__nav ul li svg {
+.sidenav__nav__ul__item svg {
   fill: #b8d3cb;
 }
 .auth__main {

@@ -8,6 +8,7 @@ const Organizer_1 = __importDefault(require("../../services/Organizer"));
 exports.default = (app) => {
     app.get('/organizer/sign-up', base_1.default.render('Sign up'));
     app.get('/organizer/sign-in', base_1.default.render('Sign in'));
+    app.get('/organizer/sign-out', base_1.default.signOutOrganizer);
     app.get('/organizer/event-manager', base_1.default.render('Event manager'));
     app.post('/organizer/sign-up', base_1.default.wrap(Organizer_1.default.signUp));
     app.post('/organizer/sign-in', base_1.default.wrap(Organizer_1.default.signIn));

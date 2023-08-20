@@ -26,8 +26,8 @@
                     <li class="table__body__row__item">{{datetime this.start}} - {{datetime this.end}}</li>
                     <li class="table__body__row__item flex flex--j-end">
                         <p class="margin--right-1">View</p>
-                        <p class="margin--right-1">Remove</p>
-                        <p>Edit</p>
+                        <p class="margin--right-1" style="cursor: pointer;" {{click "MyEvent.removeEvent('<<this.id>>')"}}>Remove</p>
+                        <p style="cursor: pointer;" {{click "MyEvent.openEditModal('<<this.id>>')" "Util.openModal('edit-event')"}}>Edit</p>
                     </li>
                 </ul>
             {{/each}}
@@ -35,6 +35,7 @@
     </div>
 
     {{component 'modal/event'}}
+    {{component 'modal/edit-event'}}
 
     <button class="btn btn--primary margin--top-2" {{click "Util.openModal('new-event')"}}>Create event</button>
 </div>
