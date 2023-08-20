@@ -1,0 +1,29 @@
+.btn{
+    padding: .7rem 1.4rem;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background-color: #e3d9d9;
+    text-align: center;
+    line-height: 1;
+    font-weight: 500;
+    cursor: pointer;
+
+    &--primary{
+        background-color: #1c9165;
+        color: #fff;
+
+        &:disabled{
+            background-color: lighten(#1c9165, 15%);
+            border-color: #1c9165;
+        }
+    }
+
+    &--round{
+        border-radius: 16px;
+    }
+
+    &--gray{
+        background-color: #d6d6d6;
+        color: #595959;
+    }
+}

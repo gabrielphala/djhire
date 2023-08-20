@@ -1,0 +1,4 @@
+node_modules
+public/assets/uploads/profiles/*
+package-lock.json
+.env

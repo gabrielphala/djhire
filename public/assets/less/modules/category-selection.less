@@ -1,0 +1,43 @@
+.category-selection {
+    position: relative;
+
+    input {
+        padding-right: 3rem;
+    }
+
+    svg {
+        right: 1rem;
+        width: 1.2rem;
+        height: 1.2rem;
+        fill: #939393;
+    }
+}
+
+.category-selection-new-cat {
+    &__underlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        z-index: 4;
+    }
+
+    &__options {
+        position: absolute;
+        padding: 0.3rem 0;
+        margin-top: 1rem;
+        background-color: #fff;
+        box-shadow: 0 0 3px #bebebe;
+        border-radius: 3px;
+        z-index: 5;
+
+        p {
+            padding: 0.3rem 1.3rem;
+
+            &:not(:last-child) {
+                border-bottom: 1px solid #eee;
+            }
+        }
+    }
+}

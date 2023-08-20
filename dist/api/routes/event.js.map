@@ -1,0 +1,1 @@
+{"version":3,"file":"event.js","sourceRoot":"","sources":["../../../src/api/routes/event.ts"],"names":[],"mappings":";;;;;AAEA,+DAAiD;AACjD,iEAAiD;AAEjD,kBAAe,CAAC,GAAgB,EAAE,EAAE;IAChC,GAAG,CAAC,IAAI,CAAC,YAAY,EAAE,cAAc,CAAC,eAAe,CAAC,eAAa,CAAC,GAAG,CAAC,CAAC,CAAA;IACzE,GAAG,CAAC,IAAI,CAAC,0BAA0B,EAAE,cAAc,CAAC,eAAe,CAAC,eAAa,CAAC,oBAAoB,CAAC,CAAC,CAAA;AAC5G,CAAC,CAAA"}

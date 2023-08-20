@@ -1,0 +1,40 @@
+{{~scope 'organizer.event.manager'}}
+{{~fetch '/events/get/by/organizer' | as 'res'}}
+{{~signal 'events' res.events}}
+
+<div class="container__main__focus">
+    <div class="container__main__focus__title">
+        <h4>Event manager</h4>
+        <div class="container__main__focus__title__hr"></div>
+    </div>
+    <div class="table">
+        <div class="table__header">
+            <ul class="table__header__row flex">
+                <li class="table__header__row__item short">#</li>
+                <li class="table__header__row__item">Name</li>
+                <li class="table__header__row__item">Location</li>
+                <li class="table__header__row__item">Period</li>
+                <li class="table__header__row__item">action</li>
+            </ul>
+        </div>
+        <div class="table__body">
+            {{#each events}}
+                <ul class="table__body__row flex">
+                    <li class="table__body__row__item short">{{index}}</li>
+                    <li class="table__body__row__item">{{this.name}}</li>
+                    <li class="table__body__row__item">{{this.location}}</li>
+                    <li class="table__body__row__item">{{datetime this.start}} - {{datetime this.end}}</li>
+                    <li class="table__body__row__item flex flex--j-end">
+                        <p class="margin--right-1">View</p>
+                        <p class="margin--right-1">Remove</p>
+                        <p>Edit</p>
+                    </li>
+                </ul>
+            {{/each}}
+        </div>
+    </div>
+
+    {{component 'modal/event'}}
+
+    <button class="btn btn--primary margin--top-2" {{click "Util.openModal('new-event')"}}>Create event</button>
+</div>

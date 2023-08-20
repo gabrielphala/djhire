@@ -1,0 +1,33 @@
+{{~ scope 'organizer.sign.in' }}
+
+<div class="auth__main">
+    <div class="auth__main__logo flex flex--j-center">
+        <img src="/assets/logo/png/logo-no-background.png" alt="">
+    </div>
+    <form class="auth__main__form card" {{submit "Organizer.signIn(event)"}}>
+        <div class="auth__main__form__title card__header">
+            <h4>Sign in</h4>
+            <p>Event organizer</p>
+        </div>
+        <div class="auth__main__form__body card__body">
+            <div class="error-container hide" style="margin-bottom: 1rem;" id="auth-error">
+                <p></p>
+            </div>
+
+            <div class="input">
+                <input type="email" id="email-address" placeholder="Email address">
+            </div>
+            <div class="input">
+                <input type="password" id="password" placeholder="Password">
+            </div>
+        </div>
+        <div class="card__footer">
+            <button class="btn btn--primary">Sign in</button>
+        </div>
+    </form>
+    <div class="auth__main__footer flex flex--j-space-around margin--top-1">
+        <p>Sign up here</p>
+        <p>Sign in as artist</p>
+        <p>Terms of use</p>
+    </div>
+</div>

@@ -1,0 +1,37 @@
+<div class="modal modal--closed flex--a-start flex--j-center" id="new-event-modal">
+    <form class="modal__main card" {{submit "MyEvent.add(event)" }}>
+        <div class="card__header flex flex--a-center flex--j-space-between">
+            <div>
+                <h1>New event.</h1>
+                <p>Add a event</p>
+            </div>
+            <svg class="image--icon" {{click "Util.closeModal('new-event')" }}>
+                <use href="#cross"></use>
+            </svg>
+        </div>
+        <div class="card__body">
+            <div class="twin-inputs flex flex--a-center flex--j-space-between">
+                <div class="input">
+                    <input type="text" id="event-name" placeholder="Name">
+                </div>
+                <div class="input">
+                    <input type="text" id="event-location" placeholder="Location">
+                </div>
+            </div>
+            <div class="twin-inputs flex flex--a-center flex--j-space-between margin--top-1">
+                <div class="input">
+                    <label class="input__label" for="event-start">Event start time &amp; date</label>
+                    <input type="datetime-local" id="event-start">
+                </div>
+                <div class="input">
+                    <label class="input__label" for="event-end">Event start time &amp; date</label>
+                    <input type="datetime-local" id="event-end">
+                </div>
+            </div>
+        </div>
+        <div class="card__footer">
+            <button class="btn btn--primary">Create event</button>
+            <button type="button" class="btn" {{click "Util.closeModal('new-event')" }}>Cancel</button>
+        </div>
+    </form>
+</div>
