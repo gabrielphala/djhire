@@ -4,7 +4,7 @@
     <div class="auth__main__logo flex flex--j-center">
         <img src="/assets/logo/png/logo-no-background.png" alt="">
     </div>
-    <form class="auth__main__form card">
+    <form class="auth__main__form card" {{submit "DJ.signIn(event)"}}>
         <div class="auth__main__form__title card__header">
             <h4>Sign in</h4>
             <p>DJ</p>
@@ -15,7 +15,7 @@
             </div>
 
             <div class="input">
-                <input type="email" id="email-address" placeholder="Email address">
+                <input type="text" id="identifier" placeholder="Email address or stage name">
             </div>
             <div class="input">
                 <input type="password" id="password" placeholder="Password">
