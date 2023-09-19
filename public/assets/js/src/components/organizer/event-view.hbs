@@ -1,0 +1,42 @@
+{{~scope 'organizer.event.view'}}
+{{~fetch '/event/get/by/id/' + query.e | as 'event'}}
+{{~fetch '/invitations/get/invitees/' + query.e | as 'invitees'}}
+
+<div class="container__main__focus">
+    <div class="container__main__focus__title">
+        <h4>Event view</h4>
+        <div class="container__main__focus__title__hr"></div>
+    </div>
+    <div class="event-viewer flex">
+        <div class="event-viewer__event-details card card__body margin--right-2" style="flex: 0 0 30rem;">
+            <h4>{{event.details.name}}</h4>
+            <p>{{event.details.location}}</p>
+        </div>
+        <div class="event-viewer__event-invitees" style="flex: 1;">
+            <p>Invitees</p>
+            <div class="table">
+                <div class="table__header">
+                    <ul class="table__header__row flex">
+                        <li class="table__header__row__item short">#</li>
+                        <li class="table__header__row__item">Name</li>
+                        <li class="table__header__row__item">Status</li>
+                        <li class="table__header__row__item">action</li>
+                    </ul>
+                </div>
+                <div class="table__body">
+                    {{#each invitees.invitees}}
+                        <ul class="table__body__row flex">
+                            <li class="table__body__row__item short">{{index}}</li>
+                            <li class="table__body__row__item">{{this.stage_name}}</li>
+                            <li class="table__body__row__item">{{this.status}}</li>
+                            <li class="table__body__row__item" style="cursor: pointer;" {{click "Invitation.removeById('<<this.id>>')"}}>remove</li>
+                        </ul>
+                    {{/each}}
+                </div>
+                <button class="btn btn--primary margin--top-2" {{click "Util.openModal('add-dj')"}}>Invite DJ</button>
+            </div>
+        </div>
+    </div>
+
+    {{component 'modal/add-dj'}}
+</div>

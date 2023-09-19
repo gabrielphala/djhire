@@ -25,7 +25,7 @@
                     <li class="table__body__row__item">{{this.location}}</li>
                     <li class="table__body__row__item">{{datetime this.start}} - {{datetime this.end}}</li>
                     <li class="table__body__row__item flex flex--j-end">
-                        <p class="margin--right-1">View</p>
+                        <p class="margin--right-1"><a href="/organizer/event-view?e={{this.id}}" {{click "Util.nav(event)"}}>View</a></p>
                         <p class="margin--right-1" style="cursor: pointer;" {{click "MyEvent.removeEvent('<<this.id>>')"}}>Remove</p>
                         <p style="cursor: pointer;" {{click "MyEvent.openEditModal('<<this.id>>')" "Util.openModal('edit-event')"}}>Edit</p>
                     </li>

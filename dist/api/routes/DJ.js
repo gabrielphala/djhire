@@ -12,5 +12,6 @@ exports.default = (app) => {
     app.get('/my-schedule', base_1.default.render('DJ schedule'));
     app.post('/sign-up', base_1.default.wrap(DJ_1.default.signUp));
     app.post('/sign-in', base_1.default.wrap(DJ_1.default.signIn));
+    app.post('/dj/search/by/name', base_1.default.wrap(DJ_1.default.searchByName));
 };
 //# sourceMappingURL=dj.js.map

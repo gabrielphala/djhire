@@ -12,4 +12,6 @@ export default (app: Application) => {
 
     app.post('/sign-up', baseController.wrap(djService.signUp))
     app.post('/sign-in', baseController.wrap(djService.signIn))
+
+    app.post('/dj/search/by/name', baseController.wrap(djService.searchByName))
 }

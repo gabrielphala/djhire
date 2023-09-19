@@ -47,6 +47,22 @@ class EventServices {
         }
         return wrapRes;
     }
+    static async getById(wrapRes, _, req) {
+        try {
+            const { event_id } = req.params;
+            const details = await Event_1.default.findOne({
+                condition: {
+                    id: event_id
+                }
+            });
+            wrapRes.details = details ? details.toObject() : null;
+            wrapRes.successful = true;
+        }
+        catch (e) {
+            throw e;
+        }
+        return wrapRes;
+    }
     static async removeEvent(wrapRes, body) {
         try {
             const { event_id } = body;

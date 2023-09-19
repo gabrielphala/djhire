@@ -1,11 +1,42 @@
 {{~scope 'dj.schedule'}}
+{{~fetch '/invitations/get/by/dj/' + userInfo.id | as 'invitations'}}
 
 <div class="container__main__focus">
     <h4>My Schedule</h4>
 
-    <div class="no-content flex flex--a-center">
-        <img src="/assets/illustrations/data.svg" style="width: 30rem;" alt="No video">
-        <h4>No events</h4>
-        <p>Your invites from organizers will appear here.</p>
-    </div>
+    {{#if invitations.invitations}}
+        <div class="table">
+            <div class="table__header">
+                <ul class="table__header__row flex">
+                    <li class="table__header__row__item short">#</li>
+                    <li class="table__header__row__item">Organizer</li>
+                    <li class="table__header__row__item">Event name</li>
+                    <li class="table__header__row__item">Location</li>
+                    <li class="table__header__row__item">Period</li>
+                    <li class="table__header__row__item">Action</li>
+                </ul>
+            </div>
+            <div class="table__body">
+                {{#each invitations.invitations}}
+                    <ul class="table__body__row flex">
+                        <li class="table__body__row__item short">{{index}}</li>
+                        <li class="table__body__row__item">{{this.fullname}}</li>
+                        <li class="table__body__row__item">{{this.name}}</li>
+                        <li class="table__body__row__item">{{this.location}}</li>
+                        <li class="table__body__row__item">{{datetime this.start}} - {{datetime this.end}}</li>
+                        <li class="table__body__row__item">
+                            <span style="cursor: pointer; display: inline-block; margin-right: 2rem;">Accept</span>
+                            <span style="cursor: pointer;">Deny</span>
+                        </li>
+                    </ul>
+                {{/each}}
+            </div>
+        </div>
+    {{else}}
+        <div class="no-content flex flex--a-center">
+            <img src="/assets/illustrations/data.svg" style="width: 30rem;" alt="No video">
+            <h4>No events</h4>
+            <p>Your invites from organizers will appear here.</p>
+        </div>
+    {{/if}}
 </div>

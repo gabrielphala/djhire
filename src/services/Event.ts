@@ -52,6 +52,25 @@ export default class EventServices {
         return wrapRes;
     }
 
+    static async getById (wrapRes: IResponse, _: IAny, req: IAny) : Promise <IResponse> {
+        try {
+            const { event_id } = req.params;
+
+            const details = await Event.findOne({
+                condition: {
+                    id: event_id
+                }
+            });
+
+            wrapRes.details = details ? details.toObject() : null;
+
+            wrapRes.successful = true;
+
+        } catch (e) { throw e; }
+
+        return wrapRes;
+    }
+
     static async removeEvent (wrapRes: IResponse, body: IAny) : Promise <IResponse> {
         try {
             const { event_id } = body;

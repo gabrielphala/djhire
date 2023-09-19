@@ -279,8 +279,8 @@ class KoliEngine {
         // do not cache any component that uses helpers like 'fetch'
         // it will prevent the same component from being compiled a second time even thou
         // the fetch would return different data
-        // if (!this._hasInternalDataFetch)
-        //     this._cache.store(cacheKey, this._content);
+        if (!this._hasInternalDataFetch)
+            this._cache.store(cacheKey, this._content);
     }
     async render(config = {}) {
         try {
@@ -1207,6 +1207,13 @@ const initHelpers = () => {
     Environment_1.default.kolijs.setHelper('linkActive', function (str) {
         return `data-linkactive="${str}"`;
     });
+    Environment_1.default.kolijs.setHelper('cutstr', function (str, length, offset) {
+        length = parseInt(length);
+        let offsetLength = offset && offset.length < 40 ? 40 - offset.length : 0;
+        if (str.length <= offsetLength + length)
+            return str;
+        return `${str.slice(0, length + offsetLength + 1)}...`;
+    });
     EventTypes_1.default.forEach(eventType => {
         Environment_1.default.kolijs.setHelper(eventType, function (...fns) {
             let res = `on${eventType}="`;
@@ -1470,11 +1477,6 @@ exports["default"] = new (class Layouts {
         if (!contentRegenate) {
             Middleware_1.default.once(() => {
                 Util_1.default.prependToBody(layout.content);
-                // Components.initNavEvents();
-                // Components.initHighlightNavItems();
-                // const router = Router.use(Router.currentRoute.name);
-                // Components.initEvents('loaded');
-                // Components.initOnLoaded()
                 Router_1.default.currentRoute.initDOMLoaded();
             });
         }
@@ -1490,12 +1492,6 @@ exports["default"] = new (class Layouts {
         Middleware_1.default.once(() => {
             layout.removeUnusedElements();
             layout.addNewElements();
-            // Util.prependToBody(layout.content);
-            // Components.initNavEvents();
-            // Components.initHighlightNavItems();
-            // const router = Router.use(Router.currentRoute.name);
-            // Components.initEvents('loaded');
-            // Components.initOnLoaded()
             Router_1.default.currentRoute.initDOMLoaded();
         });
     }
@@ -2889,6 +2885,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const oddlyjs_1 = __webpack_require__(/*! oddlyjs */ "../oddlyjs/index.ts");
 const error_container_1 = __webpack_require__(/*! ../helpers/error-container */ "./public/assets/js/src/helpers/error-container.ts");
 const fetch_1 = __importDefault(__webpack_require__(/*! ../helpers/fetch */ "./public/assets/js/src/helpers/fetch.ts"));
+const array_1 = __webpack_require__(/*! ../helpers/array */ "./public/assets/js/src/helpers/array.ts");
+const datetime_1 = __webpack_require__(/*! ../helpers/datetime */ "./public/assets/js/src/helpers/datetime.ts");
+const modal_1 = __webpack_require__(/*! ../helpers/modal */ "./public/assets/js/src/helpers/modal.ts");
 exports["default"] = () => new (class DJ {
     constructor() {
         new oddlyjs_1.Events(this);
@@ -2922,6 +2921,98 @@ exports["default"] = () => new (class DJ {
             return (0, oddlyjs_1.Next)('/my-schedule');
         }
         (0, error_container_1.showError)('auth', response.error);
+    }
+    async searchByName() {
+        const response = await (0, fetch_1.default)('/dj/search/by/name', {
+            body: {
+                dj_name: $('#dj-name').val()
+            }
+        });
+        if ((0, array_1.arrayNotEmpty)(response.djs)) {
+            let text = '';
+            for (let i = 0; i < response.djs.length; i++) {
+                const dj = response.djs[i];
+                const res = await (0, fetch_1.default)(`/invitations/get/by/dj/${dj.id}`);
+                let invites = "";
+                if ((0, array_1.arrayNotEmpty)(res.invitations)) {
+                    res.invitations.forEach((inv, index) => {
+                        invites += `
+                            <ul class="table__body__row flex">
+                                <li class="table__body__row__item short" style="padding-left: 0;">${index + 1}</li>
+                                <li class="table__body__row__item">${inv.name}</li>
+                                <li class="table__body__row__item">${(0, datetime_1.getStaticDate)(inv.start)}</li>
+                                <li class="table__body__row__item" style="padding-right: 0;">${(0, datetime_1.getStaticDate)(inv.end)}</li>
+                            </ul>
+                        `;
+                    });
+                }
+                text += `<div class="dj-container__item">
+                    <h4>${dj.stage_name}</h4>
+                    <div class="table">
+                        <div class="table__header">
+                            <ul class="table__header__row flex">
+                                <li class="table__header__row__item short" style="padding-left: 0;">#</li>
+                                <li class="table__header__row__item">Invitation</li>
+                                <li class="table__header__row__item">Starts at</li>
+                                <li class="table__header__row__item" style="padding-right: 0;">End at</li>
+                            </ul>
+                        </div>
+                        <div class="table__body" style="box-shadow: none;">
+                            ${invites}
+                        </div>
+                    </div>
+                    <p class="send-invitation" data-djid="${dj.id}" data-eventid="${oddlyjs_1.Router.currentRoute.query.get('e')}">Send invitation</p>
+                </div>`;
+            }
+            $('.dj-container').html(text);
+            $('.send-invitation').off('click');
+            $('.send-invitation').on('click', async (e) => {
+                const { djid, eventid } = e.currentTarget.dataset;
+                const addInviteRes = await (0, fetch_1.default)('/invitation/add', {
+                    body: {
+                        dj_id: djid,
+                        event_id: eventid
+                    }
+                });
+                if (addInviteRes.successful) {
+                    (0, oddlyjs_1.Refresh)();
+                    return (0, modal_1.closeModal)('add-dj');
+                }
+                (0, error_container_1.showError)('add-dj', addInviteRes.error);
+            });
+            return;
+        }
+        $('.dj-container').html('');
+    }
+});
+
+
+/***/ }),
+
+/***/ "./public/assets/js/src/events/Invitation.ts":
+/*!***************************************************!*\
+  !*** ./public/assets/js/src/events/Invitation.ts ***!
+  \***************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const oddlyjs_1 = __webpack_require__(/*! oddlyjs */ "../oddlyjs/index.ts");
+const fetch_1 = __importDefault(__webpack_require__(/*! ../helpers/fetch */ "./public/assets/js/src/helpers/fetch.ts"));
+exports["default"] = () => new (class Invitation {
+    constructor() {
+        new oddlyjs_1.Events(this);
+    }
+    async removeById(invitation_id) {
+        const response = await (0, fetch_1.default)('/invitation/remove', {
+            body: {
+                invitation_id
+            }
+        });
+        (0, oddlyjs_1.Refresh)();
     }
 });
 
@@ -3117,12 +3208,61 @@ const DJ_1 = __importDefault(__webpack_require__(/*! ./DJ */ "./public/assets/js
 const Util_1 = __importDefault(__webpack_require__(/*! ./Util */ "./public/assets/js/src/events/Util.ts"));
 const MyEvent_1 = __importDefault(__webpack_require__(/*! ./MyEvent */ "./public/assets/js/src/events/MyEvent.ts"));
 const Organizer_1 = __importDefault(__webpack_require__(/*! ./Organizer */ "./public/assets/js/src/events/Organizer.ts"));
+const Invitation_1 = __importDefault(__webpack_require__(/*! ./Invitation */ "./public/assets/js/src/events/Invitation.ts"));
 exports["default"] = () => {
     (0, DJ_1.default)();
     (0, Util_1.default)();
     (0, MyEvent_1.default)();
     (0, Organizer_1.default)();
+    (0, Invitation_1.default)();
 };
+
+
+/***/ }),
+
+/***/ "./public/assets/js/src/helpers/array.ts":
+/*!***********************************************!*\
+  !*** ./public/assets/js/src/helpers/array.ts ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.arrayNotEmpty = void 0;
+const arrayNotEmpty = (arr) => {
+    if (arr && arr.length > 0)
+        return 1;
+    return 0;
+};
+exports.arrayNotEmpty = arrayNotEmpty;
+
+
+/***/ }),
+
+/***/ "./public/assets/js/src/helpers/datetime.ts":
+/*!**************************************************!*\
+  !*** ./public/assets/js/src/helpers/datetime.ts ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getStaticDate = void 0;
+const getMonths = () => ([
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+]);
+const makeTime = (date) => {
+    let hours = date.getHours(), minutes = date.getMinutes();
+    hours = hours < 10 ? '0' + hours : hours;
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+    let time = hours + ':' + minutes, day = date.getDate(), month = getMonths()[date.getMonth()], year = date.getFullYear().toString();
+    return { time, day, month, year };
+};
+const getStaticDate = (date) => {
+    const { time, day, month, year } = makeTime(new Date(date));
+    return `${time}, ${day} ${month} ${year[2] + year[3]}'`;
+};
+exports.getStaticDate = getStaticDate;
 
 
 /***/ }),
@@ -3280,6 +3420,11 @@ exports["default"] = () => {
     (0, oddlyjs_1.Route)({
         name: 'organizer.event.manager',
         url: '/organizer/event-manager',
+        layoutpath: 'info'
+    });
+    (0, oddlyjs_1.Route)({
+        name: 'organizer.event.view',
+        url: '/organizer/event-view',
         layoutpath: 'info'
     });
 };

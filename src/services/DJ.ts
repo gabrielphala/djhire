@@ -74,4 +74,19 @@ export default class DJServices {
 
         return wrapRes;
     }
+
+    static async searchByName (wrapRes: IResponse, body: IAny): Promise<IResponse> {
+        try {
+            const { dj_name } = body;
+
+            wrapRes.djs = await DJ.search({
+                condition: {
+                    stage_name: dj_name
+                }
+            })
+
+        } catch (e) { throw e; }
+
+        return wrapRes;
+    }
 };

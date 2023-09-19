@@ -10,6 +10,7 @@ exports.default = (app) => {
     app.get('/organizer/sign-in', base_1.default.render('Sign in'));
     app.get('/organizer/sign-out', base_1.default.signOutOrganizer);
     app.get('/organizer/event-manager', base_1.default.render('Event manager'));
+    app.get('/organizer/event-view', base_1.default.render('Event view'));
     app.post('/organizer/sign-up', base_1.default.wrap(Organizer_1.default.signUp));
     app.post('/organizer/sign-in', base_1.default.wrap(Organizer_1.default.signIn));
 };

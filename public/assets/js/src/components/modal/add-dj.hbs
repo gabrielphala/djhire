@@ -1,0 +1,28 @@
+<div class="modal modal--closed flex--a-start flex--j-center" id="add-dj-modal">
+    <form class="modal__main card">
+        <div class="card__header flex flex--a-center flex--j-space-between">
+            <div>
+                <h1>DJ invitation</h1>
+            </div>
+            <svg class="image--icon" {{click "Util.closeModal('add-dj')" }}>
+                <use href="#cross"></use>
+            </svg>
+        </div>
+        <div class="card__body">
+            <div class="error-container hide" style="margin-bottom: 1rem;" id="add-dj-error">
+                <p></p>
+            </div>
+  
+            <div class="input">
+                <input type="text" id="dj-name" placeholder="DJ Name" {{keyup "DJ.searchByName()"}}>
+            </div>
+
+            <div class="dj-container margin--top-1">
+                
+            </div>
+        </div>
+        <div class="card__footer">
+            <button type="button" class="btn" {{click "Util.closeModal('add-dj')" }}>Cancel</button>
+        </div>
+    </form>
+</div>

@@ -63,6 +63,20 @@ class DJServices {
         }
         return wrapRes;
     }
+    static async searchByName(wrapRes, body) {
+        try {
+            const { dj_name } = body;
+            wrapRes.djs = await DJ_1.default.search({
+                condition: {
+                    stage_name: dj_name
+                }
+            });
+        }
+        catch (e) {
+            throw e;
+        }
+        return wrapRes;
+    }
 }
 exports.default = DJServices;
 ;

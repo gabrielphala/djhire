@@ -18,4 +18,10 @@ export default (): void => {
         url: '/organizer/event-manager',
         layoutpath: 'info'
     })
+
+    Route({
+        name: 'organizer.event.view',
+        url: '/organizer/event-view',
+        layoutpath: 'info'
+    })
 }
