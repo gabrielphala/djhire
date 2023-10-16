@@ -15,5 +15,8 @@ exports.default = new (class DJ extends sqlifier_1.SQLifier {
             isDeleted: { type: 'boolean', default: false }
         });
     }
+    updateUser(id, details) {
+        this.update({ id }, details);
+    }
 });
 //# sourceMappingURL=DJ.js.map

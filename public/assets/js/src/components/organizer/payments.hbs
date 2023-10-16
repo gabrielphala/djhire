@@ -1,0 +1,31 @@
+{{~scope 'organizer.payments'}}
+{{~fetch '/payments/get/by/organizer' | as 'res'}}
+
+<div class="container__main__focus">
+    <div class="container__main__focus__title">
+        <h4>Payments</h4>
+        <div class="container__main__focus__title__hr"></div>
+    </div>
+    <div class="table">
+        <div class="table__header">
+            <ul class="table__header__row flex">
+                <li class="table__header__row__item short">#</li>
+                <li class="table__header__row__item">dj</li>
+                <li class="table__header__row__item">event</li>
+                <li class="table__header__row__item">Deposit</li>
+                <li class="table__header__row__item">Amount remaining</li>
+            </ul>
+        </div>
+        <div class="table__body">
+            {{#each res.payments}}
+                <ul class="table__body__row flex">
+                    <li class="table__body__row__item short">{{index}}</li>
+                    <li class="table__body__row__item">{{this.stage_name}}</li>
+                    <li class="table__body__row__item">{{this.name}}</li>
+                    <li class="table__body__row__item"><a href="/organizer/pay?i={{this.id}}&p={{this.min_deposit}}">R{{this.min_deposit}} | Pay now</a></li>
+                    <li class="table__body__row__item"><a href="/organizer/pay?i={{this.id}}&p={{minus this.full_amount this.total}}">R{{minus this.full_amount this.total}} | Pay now</a></li>
+                </ul>
+            {{/each}}
+        </div>
+    </div>
+</div>

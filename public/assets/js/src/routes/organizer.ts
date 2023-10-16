@@ -14,6 +14,18 @@ export default (): void => {
     })
 
     Route({
+        name: 'organizer.payments',
+        url: '/organizer/payments',
+        layoutpath: 'info'
+    })
+
+    Route({
+        name: 'organizer.pay',
+        url: '/organizer/pay',
+        layoutpath: 'info'
+    })
+
+    Route({
         name: 'organizer.event.manager',
         url: '/organizer/event-manager',
         layoutpath: 'info'

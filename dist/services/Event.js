@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Event_1 = __importDefault(require("../models/Event"));
+const sqlifier_1 = require("sqlifier");
 const Validation_1 = __importDefault(require("../helpers/Validation"));
 class EventServices {
     static async add(wrapRes, body, { userInfo }) {
@@ -77,7 +78,11 @@ class EventServices {
     static async getEventsByOrganizer(wrapRes, body, { userInfo }) {
         try {
             wrapRes.events = await Event_1.default.find({
-                condition: { organizer_id: userInfo.id, isDeleted: false }
+                condition: {
+                    organizer_id: userInfo.id,
+                    isDeleted: false,
+                    end: { $gt: sqlifier_1.SQLDate.now() }
+                }
             });
             wrapRes.successful = true;
         }

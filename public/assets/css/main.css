@@ -400,3 +400,29 @@ li {
 .auth__main__footer {
   color: #928f94;
 }
+.profile {
+  display: flex;
+  margin-top: 2rem;
+}
+.profile__photo {
+  flex: 0 0 17rem;
+  margin-right: 3rem;
+  padding-right: 3rem;
+  border-right: 1px solid #ddd;
+}
+.profile__photo__background {
+  width: 17rem;
+  height: 17rem;
+}
+.profile__details {
+  flex: 0 0 40rem;
+}
+.profile__details h4 {
+  margin-bottom: 1rem;
+}
+.profile__details form:not(:last-child) {
+  margin-bottom: 4rem;
+}
+.profile__details form .input {
+  margin-bottom: 2rem;
+}

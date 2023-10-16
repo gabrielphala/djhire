@@ -1,4 +1,4 @@
-{{~scope 'dj.schedule'}}
+{{~scope 'dj.schedule' 'dj.profile' 'dj.profile.fees' }}
 
 <div class="sidenav">
     <div class="sidenav__logo">
@@ -6,13 +6,13 @@
     </div>
     <div class="sidenav__nav">
         <ul class="sidenav__nav__ul">
-            <li class="sidenav__nav__ul__item flex flex--a-center">
+            <a href="/my-schedule" class="sidenav__nav__ul__item flex flex--a-center" {{click "util.nav(event)"}}>
                 <svg class="image--icon margin--right-1">
                     <use href="#calendar"></use>
                 </svg>
                 <span>My schedule</span>
-            </li>
-            <li class="sidenav__nav__ul__item flex flex--a-center">
+            </a>
+            <a href="profile" class="sidenav__nav__ul__item flex flex--a-center" {{cack "util.nav(event)"}}>
                 <svg class="image--icon margin--right-1">
                     <use href="#user"></use>
                 </svg>

@@ -25,8 +25,18 @@
                         <li class="table__body__row__item">{{this.location}}</li>
                         <li class="table__body__row__item">{{datetime this.start}} - {{datetime this.end}}</li>
                         <li class="table__body__row__item">
-                            <span style="cursor: pointer; display: inline-block; margin-right: 2rem;">Accept</span>
-                            <span style="cursor: pointer;">Deny</span>
+                            {{#same this.status 'pending'}}
+                                <span style="cursor: pointer; display: inline-block; margin-right: 2rem;" {{click "Invitation.accept('<<this.event_id>>', '<<this.organizer_id>>')"}}>Accept</span>
+                                <span style="cursor: pointer;" {{click "Invitation.deny('<<this.event_id>>', '<<this.organizer_id>>')"}}>Deny</span>
+                            {{/same}}
+
+                            {{#same this.status 'Accepted'}}
+                                <span>Accepted</span>
+                            {{/same}}
+
+                            {{#same this.status 'Declined'}}
+                                <span>Declined</span>
+                            {{/same}}
                         </li>
                     </ul>
                 {{/each}}

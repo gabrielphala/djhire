@@ -15,4 +15,8 @@ export default new (class DJ extends SQLifier {
             isDeleted: { type: 'boolean', default: false }
         })
     }
+
+    updateUser (id: string | number, details) {
+        this.update({ id }, details)
+    }
 })

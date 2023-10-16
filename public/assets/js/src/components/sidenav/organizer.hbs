@@ -1,4 +1,4 @@
-{{~scope 'organizer.event.manager' 'organizer.event.view'}}
+{{~scope 'organizer.event.manager' 'organizer.event.view' 'organizer.payments' 'organizer.pay'}}
 
 <div class="sidenav">
     <div class="sidenav__logo">
@@ -6,18 +6,18 @@
     </div>
     <div class="sidenav__nav">
         <ul class="sidenav__nav__ul">
-            <li class="sidenav__nav__ul__item flex flex--a-center">
+            <a href="/organizer/event-manager" {{click "Util.nav(event)"}} class="sidenav__nav__ul__item flex flex--a-center">
                 <svg class="image--icon margin--right-1">
                     <use href="#calendar"></use>
                 </svg>
                 <span>Event manager</span>
-            </li>
-            <li class="sidenav__nav__ul__item flex flex--a-center">
+            </a>
+            <a href="/organizer/payments" {{click "Util.nav(event)"}} class="sidenav__nav__ul__item flex flex--a-center">
                 <svg class="image--icon margin--right-1">
                     <use href="#user"></use>
                 </svg>
-                <span>My profile</span>
-            </li>
+                <span>Payments</span>
+            </a>
             <a href="/organizer/sign-out" class="sidenav__nav__ul__item flex flex--a-center">
                 <svg class="image--icon margin--right-1">
                     <use href="#sign-out"></use>

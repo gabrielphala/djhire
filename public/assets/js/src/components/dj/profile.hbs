@@ -1,0 +1,37 @@
+{{~scope 'dj.profile'}}
+
+<div class="container__main__focus">
+    <h4>Profile</h4>
+
+    <div class="profile">
+        <div class="profile__photo">
+            <div class="profile__photo__background image--round image--back" style="background-image: url('/assets/uploads/profiles/blank.jpg')"></div>
+        </div>
+        <div class="profile__details">
+            <h4>General details</h4>
+            <form {{submit "DJ.updateGeneralDetails(event)"}}>
+                <div class="input">
+                    <label class="input__label" for="stage-name">Stage name</label>
+                    <input type="text" id="stage-name" value="{{userInfo.stage_name}}">
+                </div>
+                <div class="input">
+                    <label class="input__label" for="email-address">Email address</label>
+                    <input type="text" id="email-address" value="{{userInfo.email}}">
+                </div>
+                <button class="btn btn--primary">Update details</button>
+            </form>
+            <h4>Fees and Rates</h4>
+            <form {{submit "DJ.updateRates(event)"}}>
+                <div class="input">
+                    <label class="input__label" for="full-amount">Full amount</label>
+                    <input type="text" id="full-amount" value="{{userInfo.full_amount}}">
+                </div>
+                <div class="input">
+                    <label class="input__label" for="min-deposit">Deposit</label>
+                    <input type="text" id="min-deposit" value="{{userInfo.min_deposit}}">
+                </div>
+                <button class="btn btn--primary">Update fees</button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -18,4 +18,16 @@ export default (): void => {
         url: '/my-schedule',
         layoutpath: 'info'
     })
+
+    Route({
+        name: 'dj.profile',
+        url: '/profile',
+        layoutpath: 'info'
+    })
+
+    Route({
+        name: 'dj.profile.fees',
+        url: '/profile/fees',
+        layoutpath: 'info'
+    })
 }

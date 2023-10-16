@@ -4,12 +4,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Invitation_1 = __importDefault(require("../models/Invitation"));
+const Payment_1 = __importDefault(require("../models/Payment"));
 const String_1 = require("../helpers/String");
 class InvitationServices {
     static async add(wrapRes, body, { userInfo }) {
         try {
             const { dj_id, event_id } = body;
-            if ((await Invitation_1.default.exists({ dj_id, event_id })).found)
+            if ((await Invitation_1.default.exists({ dj_id, event_id, isDeleted: false })).found)
                 throw 'Invitation already sent';
             Invitation_1.default.insert({
                 invitation_no: (0, String_1.makeId)(5),
@@ -17,6 +18,51 @@ class InvitationServices {
                 event_id,
                 organizer_id: userInfo.id
             });
+            wrapRes.successful = true;
+        }
+        catch (e) {
+            throw e;
+        }
+        return wrapRes;
+    }
+    static async accept(wrapRes, body, { userInfo }) {
+        const { event_id, organizer_id } = body;
+        try {
+            if ((await Payment_1.default.exists({ organizer_id, event_id })).found)
+                throw 'Already accepted';
+            const invite = await Invitation_1.default.findOne({
+                condition: {
+                    organizer_id,
+                    event_id,
+                    isDeleted: false
+                }
+            });
+            invite.status = 'Accepted';
+            invite.save();
+            Payment_1.default.insert({
+                event_id,
+                dj_id: userInfo.id,
+                organizer_id
+            });
+            wrapRes.successful = true;
+        }
+        catch (e) {
+            throw e;
+        }
+        return wrapRes;
+    }
+    static async deny(wrapRes, body, { userInfo }) {
+        const { event_id, organizer_id } = body;
+        try {
+            const invite = await Invitation_1.default.findOne({
+                condition: {
+                    organizer_id,
+                    event_id,
+                    isDeleted: false
+                }
+            });
+            invite.status = 'Declined';
+            invite.save();
             wrapRes.successful = true;
         }
         catch (e) {

@@ -14,7 +14,7 @@ export default new (class Invitation extends SQLifier {
             isDeleted: { type: 'boolean', default: false }
         })
     }
-
+    
     getOpenDJInvitations (dj_id) {
         return this.find({
             condition: { dj_id, isDeleted: false },

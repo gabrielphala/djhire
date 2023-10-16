@@ -1,4 +1,5 @@
 import Invitation from "../models/Invitation"
+import Payment from "../models/Payment";
 
 import { IAny, IResponse } from "../interfaces";
 import { makeId } from "../helpers/String";
@@ -8,7 +9,7 @@ export default class InvitationServices {
         try {
             const { dj_id, event_id } = body;
 
-            if ((await Invitation.exists({ dj_id, event_id })).found)
+            if ((await Invitation.exists({ dj_id, event_id, isDeleted: false })).found)
                 throw 'Invitation already sent';
 
             Invitation.insert({
@@ -24,6 +25,61 @@ export default class InvitationServices {
 
         return wrapRes;
     }
+
+    static async accept (wrapRes: IResponse, body: IAny, { userInfo }: IAny) : Promise <IResponse> {
+        const { event_id, organizer_id } = body;
+
+        try {
+            if ((await Payment.exists({ organizer_id, event_id })).found)
+                throw 'Already accepted';
+
+            const invite = await Invitation.findOne({
+                condition: {
+                    organizer_id,
+                    event_id,
+                    isDeleted: false
+                }
+            })
+
+            invite.status = 'Accepted';
+
+            invite.save()
+
+            Payment.insert({
+                event_id,
+                dj_id: userInfo.id,
+                organizer_id
+            })
+
+            wrapRes.successful = true;
+
+        } catch (e) { throw e; }
+
+        return wrapRes;
+    } 
+
+    static async deny (wrapRes: IResponse, body: IAny, { userInfo }: IAny) : Promise <IResponse> {
+        const { event_id, organizer_id } = body;
+
+        try {
+            const invite = await Invitation.findOne({
+                condition: {
+                    organizer_id,
+                    event_id,
+                    isDeleted: false
+                }
+            })
+
+            invite.status = 'Declined';
+
+            invite.save()
+
+            wrapRes.successful = true;
+
+        } catch (e) { throw e; }
+
+        return wrapRes;
+    } 
 
     static async getOpenDJInvitations (wrapRes: IResponse, body: IAny, req: IAny) : Promise <IResponse> {
         try {

@@ -9,6 +9,28 @@ export default () => new (class Invitation {
         new Events(this)
     }
 
+    async accept (event_id, organizer_id) {
+        const response = await fetch('/invitation/accept', {
+            body: {
+                event_id,
+                organizer_id
+            }
+        })
+
+        Refresh();
+    }
+
+    async deny (event_id, organizer_id) {
+        const response = await fetch('/invitation/deny', {
+            body: {
+                event_id,
+                organizer_id
+            }
+        })
+
+        Refresh();
+    }
+
     async removeById (invitation_id) {
         const response = await fetch('/invitation/remove', {
             body: {

@@ -392,7 +392,8 @@ class KoliHelpers {
         concat: this.concat,
         signal: this.signal,
         datetime: this.datetime,
-        readheader: this.readheader
+        readheader: this.readheader,
+        minus: this.minus
     };
     _userDefinedHelpers = [];
     _terminatorHelpers = [];
@@ -486,6 +487,15 @@ class KoliHelpers {
             res.push(arg.value);
         });
         return res.join(' ');
+    }
+    minus(...args) {
+        if (args.length < 2)
+            return;
+        let total = args[0].value;
+        for (let i = 1; i < args.length; i++) {
+            total -= args[i].value;
+        }
+        return total;
     }
     arraylen(...args) {
         const value = Array.isArray(args[0].value) ? args[0].value : [];
@@ -2984,6 +2994,24 @@ exports["default"] = () => new (class DJ {
         }
         $('.dj-container').html('');
     }
+    async updateGeneralDetails(e) {
+        e.preventDefault();
+        const response = await (0, fetch_1.default)('/dj/updates/general-details', {
+            body: {
+                stage_name: $('#stage-name').val(),
+                email: $('#email-address').val()
+            }
+        });
+    }
+    async updateRates(e) {
+        e.preventDefault();
+        const response = await (0, fetch_1.default)('/dj/updates/rates', {
+            body: {
+                min_deposit: $('#min-deposit').val(),
+                full_amount: $('#full-amount').val()
+            }
+        });
+    }
 });
 
 
@@ -3005,6 +3033,24 @@ const fetch_1 = __importDefault(__webpack_require__(/*! ../helpers/fetch */ "./p
 exports["default"] = () => new (class Invitation {
     constructor() {
         new oddlyjs_1.Events(this);
+    }
+    async accept(event_id, organizer_id) {
+        const response = await (0, fetch_1.default)('/invitation/accept', {
+            body: {
+                event_id,
+                organizer_id
+            }
+        });
+        (0, oddlyjs_1.Refresh)();
+    }
+    async deny(event_id, organizer_id) {
+        const response = await (0, fetch_1.default)('/invitation/deny', {
+            body: {
+                event_id,
+                organizer_id
+            }
+        });
+        (0, oddlyjs_1.Refresh)();
     }
     async removeById(invitation_id) {
         const response = await (0, fetch_1.default)('/invitation/remove', {
@@ -3136,6 +3182,32 @@ exports["default"] = () => new (class Organizer {
         (0, error_container_1.showError)('auth', response.error);
     }
 });
+
+
+/***/ }),
+
+/***/ "./public/assets/js/src/events/Payment.ts":
+/*!************************************************!*\
+  !*** ./public/assets/js/src/events/Payment.ts ***!
+  \************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.makePayment = void 0;
+const fetch_1 = __importDefault(__webpack_require__(/*! ../helpers/fetch */ "./public/assets/js/src/helpers/fetch.ts"));
+const makePayment = async (amount, id) => {
+    const response = await (0, fetch_1.default)('/payment/pay', {
+        body: {
+            amount,
+            id
+        }
+    });
+};
+exports.makePayment = makePayment;
 
 
 /***/ }),
@@ -3336,10 +3408,37 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const oddlyjs_1 = __webpack_require__(/*! oddlyjs */ "../oddlyjs/index.ts");
 const fetch_1 = __importDefault(__webpack_require__(/*! ../helpers/fetch */ "./public/assets/js/src/helpers/fetch.ts"));
+const Payment_1 = __webpack_require__(/*! ../events/Payment */ "./public/assets/js/src/events/Payment.ts");
 exports["default"] = () => {
     oddlyjs_1.Middleware.repeat(async (next) => {
         oddlyjs_1.Environment.put('userInfo', (await (0, fetch_1.default)('/user/get/by/session')).userInfo, true);
         next();
+    });
+    oddlyjs_1.Router.use('organizer.pay').onDOMLoaded(() => {
+        const price = parseInt(oddlyjs_1.Router.currentRoute.query.get('p'));
+        const paymentId = parseInt(oddlyjs_1.Router.currentRoute.query.get('i'));
+        if (price < 50)
+            return;
+        paypal.Buttons({
+            // Set up the transaction
+            createOrder: async function (data, actions) {
+                return actions.order.create({
+                    purchase_units: [{
+                            amount: {
+                                value: Math.round(price / 18)
+                            }
+                        }]
+                });
+            },
+            // Finalize the transaction
+            onApprove: function (data, actions) {
+                return actions.order.capture().then(function (orderData) {
+                    // oder id = orderData.id
+                    (0, Payment_1.makePayment)(price, paymentId);
+                    (0, oddlyjs_1.Next)('/organizer/payments');
+                });
+            }
+        }).render('#paypal-button-container');
     });
 };
 
@@ -3369,6 +3468,16 @@ exports["default"] = () => {
     (0, oddlyjs_1.Route)({
         name: 'dj.schedule',
         url: '/my-schedule',
+        layoutpath: 'info'
+    });
+    (0, oddlyjs_1.Route)({
+        name: 'dj.profile',
+        url: '/profile',
+        layoutpath: 'info'
+    });
+    (0, oddlyjs_1.Route)({
+        name: 'dj.profile.fees',
+        url: '/profile/fees',
         layoutpath: 'info'
     });
 };
@@ -3416,6 +3525,16 @@ exports["default"] = () => {
         name: 'organizer.sign.in',
         url: '/organizer/sign-in',
         layoutpath: 'auth'
+    });
+    (0, oddlyjs_1.Route)({
+        name: 'organizer.payments',
+        url: '/organizer/payments',
+        layoutpath: 'info'
+    });
+    (0, oddlyjs_1.Route)({
+        name: 'organizer.pay',
+        url: '/organizer/pay',
+        layoutpath: 'info'
     });
     (0, oddlyjs_1.Route)({
         name: 'organizer.event.manager',

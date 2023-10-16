@@ -129,4 +129,26 @@ export default () => new (class DJ {
 
         $('.dj-container').html('')
     }
+
+    async updateGeneralDetails (e: PointerEvent) {
+        e.preventDefault();
+
+        const response = await fetch('/dj/updates/general-details', {
+            body: {
+                stage_name: $('#stage-name').val(),
+                email: $('#email-address').val()
+            }
+        })
+    }
+
+    async updateRates (e: PointerEvent) {
+        e.preventDefault();
+
+        const response = await fetch('/dj/updates/rates', {
+            body: {
+                min_deposit: $('#min-deposit').val(),
+                full_amount: $('#full-amount').val()
+            }
+        })
+    }
 });

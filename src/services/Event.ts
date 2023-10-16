@@ -1,4 +1,5 @@
 import Event from "../models/Event"
+import { SQLDate } from "sqlifier"
 
 import v from "../helpers/Validation"
 
@@ -87,7 +88,11 @@ export default class EventServices {
     static async getEventsByOrganizer (wrapRes: IResponse, body: IAny, { userInfo }: IAny) : Promise <IResponse> {
         try {
             wrapRes.events = await Event.find({
-                condition: { organizer_id: userInfo.id, isDeleted: false }
+                condition: {
+                    organizer_id: userInfo.id,
+                    isDeleted: false,
+                    end: { $gt: SQLDate.now() }
+                }
             })
 
             wrapRes.successful = true;

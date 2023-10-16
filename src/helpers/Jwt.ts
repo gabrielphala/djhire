@@ -26,7 +26,7 @@ class JWT {
         this._jwt.sign(data, process.env.JWT_REFRESH_TKN)
     );
 
-    get_access_token = (data: any, expiresIn = '2h') => (
+    get_access_token = (data: any, expiresIn = '4h') => (
         this._jwt.sign(data, process.env.JWT_ACC_TKN, { expiresIn })
     );
 

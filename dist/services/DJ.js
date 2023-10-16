@@ -17,6 +17,10 @@ class DJServices {
                 'password': { value: password, min: 8, max: 16 },
                 'confirmation password': { value: passwordAgain, is: ['password', 'Passwords do not match'] }
             });
+            if ((await DJ_1.default.exists({ stage_name })).found)
+                throw 'Stage name already taken';
+            if ((await DJ_1.default.exists({ email })).found)
+                throw 'Email address already taken';
             const djDetails = await DJ_1.default.insert({
                 stage_name,
                 email,
@@ -71,6 +75,46 @@ class DJServices {
                     stage_name: dj_name
                 }
             });
+        }
+        catch (e) {
+            throw e;
+        }
+        return wrapRes;
+    }
+    static async updateGeneralDetails(wrapRes, body, { userInfo }) {
+        try {
+            const { stage_name, email } = body;
+            if ((await DJ_1.default.exists({ id: { $ne: userInfo.id }, stage_name })).found)
+                throw 'Stage name already taken';
+            if ((await DJ_1.default.exists({ id: { $ne: userInfo.id }, email })).found)
+                throw 'Email address already taken';
+            Validation_1.default.validate({
+                'stage name': { value: stage_name, min: 5, max: 36 },
+                'email address': { value: email, min: 5, max: 46 }
+            });
+            DJ_1.default.updateUser(userInfo.id, {
+                stage_name,
+                email
+            });
+            wrapRes.successful = true;
+        }
+        catch (e) {
+            throw e;
+        }
+        return wrapRes;
+    }
+    static async updateRates(wrapRes, body, { userInfo }) {
+        try {
+            const { min_deposit, full_amount } = body;
+            Validation_1.default.validate({
+                'Min deposit': { value: min_deposit },
+                'Full amount': { value: full_amount },
+            });
+            DJ_1.default.updateUser(userInfo.id, {
+                min_deposit: parseFloat(min_deposit),
+                full_amount: parseFloat(full_amount)
+            });
+            wrapRes.successful = true;
         }
         catch (e) {
             throw e;
