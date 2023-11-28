@@ -96,12 +96,35 @@ class DJServices {
                 stage_name,
                 email
             });
+            const djDetails = await DJ_1.default.findOne({
+                condition: { id: userInfo.id }
+            });
+            let details = djDetails.toObject();
+            const tokens = Jwt_1.default.get_cookie_tokens(details);
+            wrapRes.set_cookie('dj_user', tokens);
             wrapRes.successful = true;
         }
         catch (e) {
             throw e;
         }
         return wrapRes;
+    }
+    static async updateProfile(body, req, res) {
+        try {
+            await DJ_1.default.updateUser(req.store.userInfo.id, {
+                profile: req.files[0].filename
+            });
+            const djDetails = await DJ_1.default.findOne({
+                condition: { id: req.store.userInfo.id }
+            });
+            let details = djDetails.toObject();
+            const tokens = Jwt_1.default.get_cookie_tokens(details);
+            res.cookie('dj_user', tokens);
+            req.successful = true;
+        }
+        catch (e) {
+            throw e;
+        }
     }
     static async updateRates(wrapRes, body, { userInfo }) {
         try {
@@ -114,6 +137,12 @@ class DJServices {
                 min_deposit: parseFloat(min_deposit),
                 full_amount: parseFloat(full_amount)
             });
+            const djDetails = await DJ_1.default.findOne({
+                condition: { id: userInfo.id }
+            });
+            let details = djDetails.toObject();
+            const tokens = Jwt_1.default.get_cookie_tokens(details);
+            wrapRes.set_cookie('dj_user', tokens);
             wrapRes.successful = true;
         }
         catch (e) {

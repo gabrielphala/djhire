@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const base_1 = __importDefault(require("../controllers/base"));
 const DJ_1 = __importDefault(require("../../services/DJ"));
 const middleware_1 = require("../../middleware");
+const multer_1 = require("../../config/multer");
 exports.default = (app) => {
     app.get('/sign-up', base_1.default.render('Sign up'));
     app.get('/sign-in', base_1.default.render('Sign in'));
@@ -17,5 +18,15 @@ exports.default = (app) => {
     app.post('/dj/updates/general-details', base_1.default.wrap_with_store(DJ_1.default.updateGeneralDetails));
     app.post('/dj/updates/rates', base_1.default.wrap_with_store(DJ_1.default.updateRates));
     app.post('/dj/search/by/name', base_1.default.wrap(DJ_1.default.searchByName));
+    app.post('/dj/updates/profile', (req, res, next) => {
+        (0, multer_1.anyFiles)('./public/assets/uploads/profile')(req, res, async (err) => {
+            await DJ_1.default.updateProfile(req.body, req, res);
+            next();
+        });
+    }, base_1.default.wrap_with_request((res_wrap, _, req) => {
+        res_wrap.successful = req['successful'];
+        res_wrap.error = req['error'];
+        return res_wrap;
+    }));
 };
 //# sourceMappingURL=dj.js.map

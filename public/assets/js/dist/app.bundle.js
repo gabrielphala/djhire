@@ -3023,7 +3023,7 @@ exports["default"] = () => new (class DJ {
                 });
                 if (addInviteRes.successful) {
                     (0, oddlyjs_1.Refresh)();
-                    (0, popup_1.default)({ type: 'success', title: 'Artist invited', message: 'Successfully invited artist' });
+                    (0, popup_1.default)({ type: 'success', title: 'DJ invited', message: 'Successfully invited dj' });
                     return (0, modal_1.closeModal)('add-dj');
                 }
                 (0, error_container_1.showError)('add-dj', addInviteRes.error);

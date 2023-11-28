@@ -119,7 +119,7 @@ export default () => new (class DJ {
                 if (addInviteRes.successful) {
                     Refresh();
 
-                    popup({ type: 'success', title: 'Artist invited', message: 'Successfully invited artist' })
+                    popup({ type: 'success', title: 'DJ invited', message: 'Successfully invited dj' })
 
                     return closeModal('add-dj');
                 }
