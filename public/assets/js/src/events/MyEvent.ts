@@ -62,9 +62,14 @@ export default () => new (class MyEvent {
         Refresh();
     }
 
-    openEditModal (event_id: string) {
+    async openEditModal (event_id: string) {
         $('#event-id').val(event_id);
 
-        Environment.put('eventId', event_id, true);
+        const response = await fetch('/event/get/by/id/' + event_id)
+
+        $('#edit-event-name').val(response.details.name)
+        $('#edit-event-location').val(response.details.location)
+
+        // Environment.put('eventId', event_id, true);
     }
 });

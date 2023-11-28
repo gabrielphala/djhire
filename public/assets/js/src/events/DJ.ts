@@ -83,8 +83,11 @@ export default () => new (class DJ {
                     });
                 }
 
-                text += `<div class="dj-container__item">
-                    <h4>${dj.stage_name}</h4>
+                text += `<div class="dj-container__item" style="margin-bottom: 2rem;">
+                    <h4 class="flex flex--a-center">
+                        <span style="margin-right: 1rem; display: block; width: 4rem; height: 4rem; background-image: url('/assets/uploads/profile/${dj.profile}')" class="image--back image--round"></span>
+                        <span>${dj.stage_name}</span>
+                    </h4>
                     <div class="table">
                         <div class="table__header">
                             <ul class="table__header__row flex">

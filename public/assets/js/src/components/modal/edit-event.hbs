@@ -1,5 +1,3 @@
-{{~fetch '/event/get/by/id/' + eventId | as 'res'}}
-
 <div class="modal modal--closed flex--a-start flex--j-center" id="edit-event-modal">
     <form class="modal__main card" {{submit "MyEvent.edit(event)" }}>
         <div class="card__header flex flex--a-center flex--j-space-between">
@@ -20,7 +18,7 @@
 
             <div class="twin-inputs flex flex--a-center flex--j-space-between">
                 <div class="input">
-                    <input type="text" id="edit-event-name" placeholder="Name" value="{{res.details.name}}">
+                    <input type="text" id="edit-event-name" placeholder="Name">
                 </div>
                 <div class="input">
                     <input type="text" id="edit-event-location" placeholder="Location">

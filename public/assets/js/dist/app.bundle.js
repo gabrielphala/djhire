@@ -2993,8 +2993,11 @@ exports["default"] = () => new (class DJ {
                         `;
                     });
                 }
-                text += `<div class="dj-container__item">
-                    <h4>${dj.stage_name}</h4>
+                text += `<div class="dj-container__item" style="margin-bottom: 2rem;">
+                    <h4 class="flex flex--a-center">
+                        <span style="margin-right: 1rem; display: block; width: 4rem; height: 4rem; background-image: url('/assets/uploads/profile/${dj.profile}')" class="image--back image--round"></span>
+                        <span>${dj.stage_name}</span>
+                    </h4>
                     <div class="table">
                         <div class="table__header">
                             <ul class="table__header__row flex">
@@ -3188,9 +3191,12 @@ exports["default"] = () => new (class MyEvent {
         });
         (0, oddlyjs_1.Refresh)();
     }
-    openEditModal(event_id) {
+    async openEditModal(event_id) {
         $('#event-id').val(event_id);
-        oddlyjs_1.Environment.put('eventId', event_id, true);
+        const response = await (0, fetch_1.default)('/event/get/by/id/' + event_id);
+        $('#edit-event-name').val(response.details.name);
+        $('#edit-event-location').val(response.details.location);
+        // Environment.put('eventId', event_id, true);
     }
 });
 

@@ -27,7 +27,10 @@
                     {{#each invitees.invitees}}
                         <ul class="table__body__row flex">
                             <li class="table__body__row__item short">{{index}}</li>
-                            <li class="table__body__row__item">{{this.stage_name}}</li>
+                            <li class="table__body__row__item flex flex--a-center">
+                                <span style="margin-right: 1rem; display: block; width: 2.7rem; height: 2.7rem; background-image: url('/assets/uploads/profile/{{this.profile}}')" class="image--back image--round"></span>
+                                <span>{{this.stage_name}}</span>
+                            </li>
                             <li class="table__body__row__item">{{this.status}}</li>
                             <li class="table__body__row__item" style="cursor: pointer;" {{click "Invitation.removeById('<<this.id>>')"}}>remove</li>
                         </ul>
