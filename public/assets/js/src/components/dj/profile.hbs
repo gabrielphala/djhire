@@ -4,8 +4,12 @@
     <h4>Profile</h4>
 
     <div class="profile">
-        <div class="profile__photo">
-            <div class="profile__photo__background image--round image--back" style="background-image: url('/assets/uploads/profiles/blank.jpg')"></div>
+        <div class="profile__photo" style="display: flex; flex-direction: column; align-items: center;">
+            <div class="profile__photo__background image--round image--back" style="background-image: url('/assets/uploads/profile/{{userInfo.profile}}')"></div>
+            <form>
+                <label class="btn btn--primary" for="profile-file" style="display:block; margin-top: 2rem;">change</label>
+                <input type="file" id="profile-file" {{change "DJ.updateProfile(event)"}} hidden>
+            </form>
         </div>
         <div class="profile__details">
             <h4>General details</h4>

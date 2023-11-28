@@ -116,11 +116,42 @@ export default class DJServices {
                 email
             })
 
+            const djDetails = await DJ.findOne({
+                condition: { id: userInfo.id }
+            })
+
+            let details = djDetails.toObject()
+
+            const tokens = jwt.get_cookie_tokens(details);
+
+            wrapRes.set_cookie('dj_user', tokens);
+
             wrapRes.successful = true;
 
         } catch (e) { throw e; }
 
         return wrapRes;
+    }
+
+    static async updateProfile (body: IAny, req: IAny, res: IAny) {
+        try {
+            await DJ.updateUser(req.store.userInfo.id, {
+                profile: req.files[0].filename
+            })
+
+            const djDetails = await DJ.findOne({
+                condition: { id: req.store.userInfo.id }
+            })
+
+            let details = djDetails.toObject()
+
+            const tokens = jwt.get_cookie_tokens(details);
+
+            res.cookie('dj_user', tokens);
+
+            req.successful = true;
+
+        } catch (e) { throw e; }
     }
 
     static async updateRates (wrapRes: IResponse, body: IAny, { userInfo } : IAny) : Promise <IResponse> {
@@ -136,6 +167,16 @@ export default class DJServices {
                 min_deposit: parseFloat(min_deposit),
                 full_amount: parseFloat(full_amount)
             })
+
+            const djDetails = await DJ.findOne({
+                condition: { id: userInfo.id }
+            })
+
+            let details = djDetails.toObject()
+
+            const tokens = jwt.get_cookie_tokens(details);
+
+            wrapRes.set_cookie('dj_user', tokens);
 
             wrapRes.successful = true;
 

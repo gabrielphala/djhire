@@ -1,4 +1,4 @@
-import { Events, Refresh } from "oddlyjs"
+import { Events, Refresh, Environment } from "oddlyjs"
 
 import { showError } from "../helpers/error-container";
 import { closeModal } from "../helpers/modal";
@@ -64,5 +64,7 @@ export default () => new (class MyEvent {
 
     openEditModal (event_id: string) {
         $('#event-id').val(event_id);
+
+        Environment.put('eventId', event_id, true);
     }
 });

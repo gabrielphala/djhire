@@ -1,11 +1,12 @@
 import { Events, Next, Environment, Router, Refresh } from "oddlyjs"
 
 import { showError } from "../helpers/error-container";
-import fetch from "../helpers/fetch";
+import fetch, { uploadImage } from "../helpers/fetch";
 
 import { arrayNotEmpty } from "../helpers/array";
 import { getStaticDate } from "../helpers/datetime";
 import { closeModal } from "../helpers/modal";
+import popup from "../helpers/popup";
 
 export default () => new (class DJ {
     constructor () {
@@ -118,6 +119,8 @@ export default () => new (class DJ {
                 if (addInviteRes.successful) {
                     Refresh();
 
+                    popup({ type: 'success', title: 'Artist invited', message: 'Successfully invited artist' })
+
                     return closeModal('add-dj');
                 }
 
@@ -139,6 +142,25 @@ export default () => new (class DJ {
                 email: $('#email-address').val()
             }
         })
+
+        if (response.successful) {
+            return popup({ type: 'success', title: 'General details changed', message: `Successfully updated general details` })
+        }
+
+        return popup({ type: 'error', title: 'Oops', message: response.error })
+    }
+
+    async updateProfile (e: PointerEvent) {
+        const body = new FormData();
+
+        const files = $('#profile-file')[0] as HTMLInputElement;
+        const file = files.files ? files.files[0] : null;
+
+        body.append('profile', file || '');
+
+        Refresh()
+
+        uploadImage('/dj/updates/profile', body);
     }
 
     async updateRates (e: PointerEvent) {
@@ -150,5 +172,11 @@ export default () => new (class DJ {
                 full_amount: $('#full-amount').val()
             }
         })
+
+        if (response.successful) {
+            return popup({ type: 'success', title: 'Rates updated', message: `Successfully updated rates and fees` })
+        }
+
+        return popup({ type: 'error', title: 'Oops', message: response.error })
     }
 });

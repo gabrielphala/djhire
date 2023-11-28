@@ -9,3 +9,10 @@ export default async (uri: string, { method = 'POST', headers = { 'Content-Type'
 
     return await response.json();
 };  
+
+export const uploadImage = async (url, body) => {
+    return await (await fetch(url, {
+        method: 'POST',
+        body
+    })).json()
+}

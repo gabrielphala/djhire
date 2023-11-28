@@ -254,7 +254,16 @@ class KoliEngine {
             }
             lastValue = value;
         }
-        let renderedContent = '';
+        let renderedContent = '', elseBody = '';
+        const hasElse = Utility_1.default.blockHasElse(block);
+        if (hasElse) {
+            const ifArray = sameBody.split('{{else}}');
+            if (ifArray.length > 2)
+                throw 'If block has more than two else statements';
+            [sameBody, elseBody] = ifArray;
+            if (!same)
+                renderedContent += await this.subRender(elseBody, this._data);
+        }
         if (same)
             renderedContent += await this.subRender(sameBody, this._data);
         this.replaceContent(block, renderedContent);
@@ -393,7 +402,8 @@ class KoliHelpers {
         signal: this.signal,
         datetime: this.datetime,
         readheader: this.readheader,
-        minus: this.minus
+        minus: this.minus,
+        json: this.json
     };
     _userDefinedHelpers = [];
     _terminatorHelpers = [];
@@ -487,6 +497,9 @@ class KoliHelpers {
             res.push(arg.value);
         });
         return res.join(' ');
+    }
+    json(arg) {
+        return JSON.stringify(arg.value);
     }
     minus(...args) {
         if (args.length < 2)
@@ -2888,16 +2901,40 @@ const middleware_1 = __importDefault(__webpack_require__(/*! ./middleware */ "./
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const oddlyjs_1 = __webpack_require__(/*! oddlyjs */ "../oddlyjs/index.ts");
 const error_container_1 = __webpack_require__(/*! ../helpers/error-container */ "./public/assets/js/src/helpers/error-container.ts");
-const fetch_1 = __importDefault(__webpack_require__(/*! ../helpers/fetch */ "./public/assets/js/src/helpers/fetch.ts"));
+const fetch_1 = __importStar(__webpack_require__(/*! ../helpers/fetch */ "./public/assets/js/src/helpers/fetch.ts"));
 const array_1 = __webpack_require__(/*! ../helpers/array */ "./public/assets/js/src/helpers/array.ts");
 const datetime_1 = __webpack_require__(/*! ../helpers/datetime */ "./public/assets/js/src/helpers/datetime.ts");
 const modal_1 = __webpack_require__(/*! ../helpers/modal */ "./public/assets/js/src/helpers/modal.ts");
+const popup_1 = __importDefault(__webpack_require__(/*! ../helpers/popup */ "./public/assets/js/src/helpers/popup.ts"));
 exports["default"] = () => new (class DJ {
     constructor() {
         new oddlyjs_1.Events(this);
@@ -2986,6 +3023,7 @@ exports["default"] = () => new (class DJ {
                 });
                 if (addInviteRes.successful) {
                     (0, oddlyjs_1.Refresh)();
+                    (0, popup_1.default)({ type: 'success', title: 'Artist invited', message: 'Successfully invited artist' });
                     return (0, modal_1.closeModal)('add-dj');
                 }
                 (0, error_container_1.showError)('add-dj', addInviteRes.error);
@@ -3002,6 +3040,18 @@ exports["default"] = () => new (class DJ {
                 email: $('#email-address').val()
             }
         });
+        if (response.successful) {
+            return (0, popup_1.default)({ type: 'success', title: 'General details changed', message: `Successfully updated general details` });
+        }
+        return (0, popup_1.default)({ type: 'error', title: 'Oops', message: response.error });
+    }
+    async updateProfile(e) {
+        const body = new FormData();
+        const files = $('#profile-file')[0];
+        const file = files.files ? files.files[0] : null;
+        body.append('profile', file || '');
+        (0, oddlyjs_1.Refresh)();
+        (0, fetch_1.uploadImage)('/dj/updates/profile', body);
     }
     async updateRates(e) {
         e.preventDefault();
@@ -3011,6 +3061,10 @@ exports["default"] = () => new (class DJ {
                 full_amount: $('#full-amount').val()
             }
         });
+        if (response.successful) {
+            return (0, popup_1.default)({ type: 'success', title: 'Rates updated', message: `Successfully updated rates and fees` });
+        }
+        return (0, popup_1.default)({ type: 'error', title: 'Oops', message: response.error });
     }
 });
 
@@ -3030,6 +3084,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const oddlyjs_1 = __webpack_require__(/*! oddlyjs */ "../oddlyjs/index.ts");
 const fetch_1 = __importDefault(__webpack_require__(/*! ../helpers/fetch */ "./public/assets/js/src/helpers/fetch.ts"));
+const popup_1 = __importDefault(__webpack_require__(/*! ../helpers/popup */ "./public/assets/js/src/helpers/popup.ts"));
 exports["default"] = () => new (class Invitation {
     constructor() {
         new oddlyjs_1.Events(this);
@@ -3042,6 +3097,10 @@ exports["default"] = () => new (class Invitation {
             }
         });
         (0, oddlyjs_1.Refresh)();
+        if (response.successful) {
+            return (0, popup_1.default)({ type: 'success', title: 'Accepted invite', message: 'You have accepted invite' });
+        }
+        return (0, popup_1.default)({ type: 'error', title: 'Oops', message: response.error });
     }
     async deny(event_id, organizer_id) {
         const response = await (0, fetch_1.default)('/invitation/deny', {
@@ -3051,6 +3110,10 @@ exports["default"] = () => new (class Invitation {
             }
         });
         (0, oddlyjs_1.Refresh)();
+        if (response.successful) {
+            return (0, popup_1.default)({ type: 'success', title: 'Declined invite', message: 'You have successfully declined invite' });
+        }
+        return (0, popup_1.default)({ type: 'error', title: 'Oops', message: response.error });
     }
     async removeById(invitation_id) {
         const response = await (0, fetch_1.default)('/invitation/remove', {
@@ -3127,6 +3190,7 @@ exports["default"] = () => new (class MyEvent {
     }
     openEditModal(event_id) {
         $('#event-id').val(event_id);
+        oddlyjs_1.Environment.put('eventId', event_id, true);
     }
 });
 
@@ -3366,10 +3430,18 @@ exports.showError = showError;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.uploadImage = void 0;
 exports["default"] = async (uri, { method = 'POST', headers = { 'Content-Type': 'application/json;charset=utf-8' }, body = {} } = {}) => {
     const response = await fetch(uri, { method, headers, body: JSON.stringify(body) });
     return await response.json();
 };
+const uploadImage = async (url, body) => {
+    return await (await fetch(url, {
+        method: 'POST',
+        body
+    })).json();
+};
+exports.uploadImage = uploadImage;
 
 
 /***/ }),
@@ -3391,6 +3463,49 @@ const closeModal = (parent) => {
     $(`#${parent}-modal`).addClass('modal--closed');
 };
 exports.closeModal = closeModal;
+
+
+/***/ }),
+
+/***/ "./public/assets/js/src/helpers/popup.ts":
+/*!***********************************************!*\
+  !*** ./public/assets/js/src/helpers/popup.ts ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = ({ type, title, message }) => {
+    if (!$('.popup-container')[0])
+        $('<div class="popup-container">').appendTo(document.body);
+    let popup = $('.popup'), length = Array.from(popup).length, icon = type == 'error' ? 'exclamation' : 'check';
+    $(`
+        <div class="popup popup--${type} flex" style="margin-top: ${length * 30}px; z-index: ${length + 1}">
+            <div class="popup__icon flex flex--j-center flex--a-center">
+                <svg class="image--icon" style="width: 2rem; height: 2rem;">
+                    <use href="#${icon}"></use>
+                </svg>
+            </div>
+            <div class="popup__message">
+                <h4>${title}</h4>
+                <p>${message}</p>
+                <svg class="popup__message__close image--icon" style="width: 2rem; height: 2rem;">
+                    <use href="#cross"></use>
+                </svg>
+            </div>
+        </div>
+    `).appendTo($('.popup-container')[0]);
+    $($('.popup__message__close')[length]).on('click', (e) => {
+        const popup = $(e.currentTarget.parentElement.parentElement)[0];
+        popup.classList.remove('popup--open');
+        setTimeout(() => {
+            popup.remove();
+        }, 1000);
+    });
+    setTimeout(() => {
+        $('.popup')[length].classList.add('popup--open');
+    }, 200);
+};
 
 
 /***/ }),

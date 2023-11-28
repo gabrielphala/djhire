@@ -356,6 +356,66 @@ li {
   font-weight: bold;
   color: darkred;
 }
+.popup {
+  position: fixed;
+  top: 7rem;
+  right: 3rem;
+  width: 36rem;
+  overflow: hidden;
+  border-radius: 4px;
+  background-color: #f6fff6;
+  box-shadow: 0 0 1px #9d9d9d, 0 0 6px #c6c6c6;
+  opacity: 0;
+  z-index: -1;
+  transition: all 0.5s;
+}
+.popup--open {
+  opacity: 1;
+  z-index: 1;
+  transform: translateY(-2rem);
+}
+.popup__icon {
+  flex: 0 0 6rem;
+  position: relative;
+}
+.popup__icon svg {
+  fill: #007b04;
+  width: 4rem;
+  height: 4rem;
+}
+.popup__message {
+  position: relative;
+  flex: 1;
+  padding: 1.4rem;
+  padding-left: 0;
+}
+.popup__message h4 {
+  color: #007f05;
+}
+.popup__message p {
+  color: #005f03;
+}
+.popup__message svg {
+  position: absolute;
+  top: 1.4rem;
+  right: 1.4rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: #727272;
+  cursor: pointer;
+}
+.popup--error {
+  background-color: #fef2f2;
+}
+.popup--error .popup__icon svg {
+  fill: #67000036;
+}
+.popup--error .popup__message h4 {
+  color: #7b0000;
+}
+.popup--error .popup__message p {
+  color: #573333;
+}
 .main-header {
   position: fixed;
   width: calc(100% - 28rem);
